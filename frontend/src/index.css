@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-surface: #10141a;
+    --bg-card: #181c22;
+    --bg-elevated: #262a31;
+    --bg-highlight: #31353c;
+    --color-electric: #38BDF8;
+    --color-neon: #6be026;
+    --color-text-main: #dfe2eb;
+  }
+  
+  body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--bg-surface);
+    color: var(--color-text-main);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Hanken Grotesk', sans-serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #10141a;
+}
+::-webkit-scrollbar-thumb {
+  background: #262a31;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #38BDF8;
+}
+
+/* Custom Glassmorphism & Glow utilities */
+.glass-panel {
+  background: rgba(24, 28, 34, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  background: rgba(38, 42, 49, 0.8);
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.15);
+  transform: translateY(-2px);
+}
+
+.electric-glow {
+  box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+}
+
+.neon-glow {
+  box-shadow: 0 0 25px rgba(107, 224, 38, 0.25);
+}

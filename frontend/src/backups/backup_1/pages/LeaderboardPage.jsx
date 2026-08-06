@@ -24,17 +24,17 @@ export const LeaderboardPage = () => {
   const remainingRanked = leaderboard.slice(3);
 
   return (
-    <div className="min-h-screen bg-[#050505] py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
+    <div className="min-h-screen bg-[#10141a] py-8 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
       {/* Page Header */}
       <div className="text-center space-y-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-white text-xs font-mono">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono">
           <Trophy className="h-3.5 w-3.5" />
           HALL OF FAME
         </div>
         <h1 className="text-4xl font-extrabold text-white tracking-tight">
-          Candidate <span className="text-white/80">Leaderboard</span>
+          Candidate <span className="text-[#38BDF8]">Leaderboard</span>
         </h1>
-        <p className="text-sm text-white/60 font-mono">
+        <p className="text-sm text-[#88929b] font-mono">
           Top candidate telemetry ranked by accuracy, average score, and completed directives
         </p>
       </div>

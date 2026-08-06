@@ -7,25 +7,25 @@ export const AdminSidebar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <aside className="w-64 glass-panel border-r border-white/10 p-6 flex flex-col justify-between shrink-0 hidden md:flex min-h-[calc(100vh-4rem)]">
+    <aside className="w-64 glass-panel border-r border-white/10 p-6 flex flex-col justify-between shrink-0 hidden md:flex min-h-[calc(100vh-4rem)] bg-[#050505]/80">
       <div className="space-y-6">
         {/* Command Center Title */}
         <div className="border-b border-white/10 pb-4">
-          <span className="text-[10px] font-mono text-[#6be026] uppercase tracking-widest flex items-center gap-1.5">
-            <Shield className="h-3.5 w-3.5 text-[#6be026]" />
+          <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
+            <Shield className="h-3.5 w-3.5 text-emerald-400" />
             COMMAND CENTER
           </span>
-          <h2 className="text-xl font-extrabold text-white mt-1">Elite Tier Admin</h2>
+          <h2 className="text-xl font-extrabold text-white mt-1 font-display">Elite Tier Admin</h2>
         </div>
 
         {/* Navigation Group */}
-        <nav className="space-y-1 font-sans">
+        <nav className="space-y-1.5 font-mono text-xs uppercase tracking-wider">
           <Link
             to="/admin"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
               isActive("/admin")
-                ? "bg-[#38BDF8] text-[#10141a] shadow-lg shadow-[#38BDF8]/20"
-                : "text-[#bdc8d2] hover:text-white hover:bg-white/5"
+                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
+                : "text-white/60 hover:text-white hover:bg-white/5"
             }`}
           >
             <LayoutDashboard className="h-4 w-4" />
@@ -34,10 +34,10 @@ export const AdminSidebar = () => {
 
           <Link
             to="/admin/quizzes"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
               isActive("/admin/quizzes")
-                ? "bg-[#38BDF8] text-[#10141a] shadow-lg shadow-[#38BDF8]/20"
-                : "text-[#bdc8d2] hover:text-white hover:bg-white/5"
+                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
+                : "text-white/60 hover:text-white hover:bg-white/5"
             }`}
           >
             <BookOpen className="h-4 w-4" />
@@ -46,10 +46,10 @@ export const AdminSidebar = () => {
 
           <Link
             to="/admin/users"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
               isActive("/admin/users")
-                ? "bg-[#38BDF8] text-[#10141a] shadow-lg shadow-[#38BDF8]/20"
-                : "text-[#bdc8d2] hover:text-white hover:bg-white/5"
+                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
+                : "text-white/60 hover:text-white hover:bg-white/5"
             }`}
           >
             <Users className="h-4 w-4" />
@@ -58,10 +58,10 @@ export const AdminSidebar = () => {
 
           <Link
             to="/admin/categories"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
+            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
               isActive("/admin/categories")
-                ? "bg-[#38BDF8] text-[#10141a] shadow-lg shadow-[#38BDF8]/20"
-                : "text-[#bdc8d2] hover:text-white hover:bg-white/5"
+                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
+                : "text-white/60 hover:text-white hover:bg-white/5"
             }`}
           >
             <Layers className="h-4 w-4" />
@@ -70,15 +70,14 @@ export const AdminSidebar = () => {
         </nav>
       </div>
 
-      {/* Quick Action Box */}
-      <div className="p-4 rounded-2xl bg-[#10141a] border border-white/10 space-y-3">
-        <span className="text-[10px] font-mono text-[#88929b] block">QUICK ACTIONS</span>
+      {/* Quick Action Button */}
+      <div className="pt-6 border-t border-white/10">
         <Link
           to="/admin/quizzes/new"
-          className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-[#6be026] text-[#10141a] font-bold text-xs hover:bg-[#6be026]/90 transition-all"
+          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-white/20 text-white font-mono text-xs uppercase tracking-wider font-bold hover:bg-white hover:text-black transition-all duration-300"
         >
           <PlusCircle className="h-4 w-4" />
-          Create New Quiz
+          <span>New Quiz</span>
         </Link>
       </div>
     </aside>

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { QuizProvider } from './context/QuizContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { Background3DMesh } from './components/Background3DMesh';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -38,7 +39,8 @@ export function App() {
     <AuthProvider>
       <QuizProvider>
         <Router>
-          <div className="min-h-screen bg-[#10141a] text-[#dfe2eb] flex flex-col selection:bg-[#38BDF8]/30 selection:text-[#38BDF8]">
+          <div className="min-h-screen bg-[#050505] text-white flex flex-col selection:bg-white/20 selection:text-white relative">
+            <Background3DMesh />
             <Navbar />
             <div className="flex-grow">
               <Routes>

@@ -124,23 +124,23 @@ export const AdminQuizzesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex">
+    <div className="min-h-screen bg-[#10141a] flex">
       <AdminSidebar />
 
       <main className="flex-grow p-6 sm:p-8 space-y-8 overflow-y-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>
             <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Quiz <span className="text-white/80">Management</span>
+              Quiz <span className="text-[#38BDF8]">Management</span>
             </h1>
-            <p className="mt-1 text-sm text-white/60 font-mono">
+            <p className="mt-1 text-sm text-[#88929b] font-mono">
               Create, edit, publish, or configure assessment directives
             </p>
           </div>
 
           <button
             onClick={() => handleOpenModal()}
-            className="px-5 py-2.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-white/90 transition-all flex items-center gap-2 shadow-lg shadow-white/10"
+            className="px-5 py-2.5 rounded-xl bg-[#38BDF8] text-[#10141a] font-bold text-xs hover:bg-[#38BDF8]/90 transition-all flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             Create Quiz

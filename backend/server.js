@@ -13,7 +13,7 @@ app.use(express.json());
 
 // Health Check
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', service: 'Aetheris REST API', timestamp: new Date().toISOString() });
+  res.json({ status: 'OK', service: 'Examify Hub REST API', timestamp: new Date().toISOString() });
 });
 
 // API Routes
@@ -27,7 +27,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`====================================================`);
-  console.log(` Aetheris REST API Server running on port ${PORT}`);
+  console.log(` Examify Hub REST API Server running on port ${PORT}`);
   console.log(` Health Check: http://localhost:${PORT}/health`);
   console.log(`====================================================`);
 });

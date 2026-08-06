@@ -58,13 +58,13 @@ export const StudentDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-[#10141a] py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
       {/* Welcome Header (Matching Stitch Design) */}
       <div className="space-y-1">
         <h1 className="text-4xl sm:text-5xl font-extrabold text-white tracking-tight">
-          Welcome back, <span className="text-white/80">{user?.name || 'Commander'}</span>
+          Welcome back, <span className="text-[#38BDF8]">{user?.name || 'Commander'}</span>
         </h1>
-        <p className="text-base text-white/60 font-normal">
+        <p className="text-base text-[#88929b] font-normal">
           Here is your intelligence briefing for today.
         </p>
       </div>
@@ -72,8 +72,8 @@ export const StudentDashboard = () => {
       {/* Intelligence Metric Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Card 1: Average Score Circular Dial */}
-        <div className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col justify-between relative overflow-hidden bg-[#0a0a0c]">
-          <span className="text-xs font-mono text-white/40 uppercase tracking-wider">
+        <div className="glass-panel p-6 rounded-2xl border border-white/10 flex flex-col justify-between relative overflow-hidden">
+          <span className="text-xs font-mono text-[#88929b] uppercase tracking-wider">
             AVERAGE SCORE
           </span>
 
@@ -85,7 +85,7 @@ export const StudentDashboard = () => {
                 r="56"
                 stroke="currentColor"
                 strokeWidth="10"
-                className="text-white/10"
+                className="text-[#262a31]"
                 fill="transparent"
               />
               <circle
@@ -97,13 +97,13 @@ export const StudentDashboard = () => {
                 strokeDasharray={351.8}
                 strokeDashoffset={351.8 - (351.8 * stats.avgScore) / 100}
                 strokeLinecap="round"
-                className="text-white transition-all duration-1000 ease-out"
+                className="text-[#38BDF8] transition-all duration-1000 ease-out"
                 fill="transparent"
               />
             </svg>
             <div className="absolute flex flex-col items-center">
               <span className="text-3xl font-extrabold text-white">{stats.avgScore}%</span>
-              <span className="text-[10px] font-mono text-emerald-400">Accuracy</span>
+              <span className="text-[10px] font-mono text-[#38BDF8]">Accuracy</span>
             </div>
           </div>
 

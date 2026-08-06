@@ -8,7 +8,7 @@ import {
 
 // Helper to get or initialize localStorage
 const getStorage = (key, fallback) => {
-  const data = localStorage.getItem(`aetheris_${key}`);
+  const data = localStorage.getItem(`examify_hub_${key}`) || localStorage.getItem(`aetheris_${key}`);
   if (data) {
     try {
       return JSON.parse(data);
@@ -16,12 +16,12 @@ const getStorage = (key, fallback) => {
       console.error(`Error parsing localStorage key ${key}:`, e);
     }
   }
-  localStorage.setItem(`aetheris_${key}`, JSON.stringify(fallback));
+  localStorage.setItem(`examify_hub_${key}`, JSON.stringify(fallback));
   return fallback;
 };
 
 const setStorage = (key, value) => {
-  localStorage.setItem(`aetheris_${key}`, JSON.stringify(value));
+  localStorage.setItem(`examify_hub_${key}`, JSON.stringify(value));
 };
 
 export const api = {
@@ -36,8 +36,8 @@ export const api = {
       throw new Error('Account is deactivated. Please contact platform administrator.');
     }
     const token = `token-${user.id}-${Date.now()}`;
-    localStorage.setItem('aetheris_currentUser', JSON.stringify(user));
-    localStorage.setItem('aetheris_token', token);
+    localStorage.setItem('examify_hub_currentUser', JSON.stringify(user));
+    localStorage.setItem('examify_hub_token', token);
     return { user, token };
   },
 
@@ -62,17 +62,19 @@ export const api = {
     users.push(newUser);
     setStorage('users', users);
     const token = `token-${newUser.id}-${Date.now()}`;
-    localStorage.setItem('aetheris_currentUser', JSON.stringify(newUser));
-    localStorage.setItem('aetheris_token', token);
+    localStorage.setItem('examify_hub_currentUser', JSON.stringify(newUser));
+    localStorage.setItem('examify_hub_token', token);
     return { user: newUser, token };
   },
 
   getCurrentUser: async () => {
-    const saved = localStorage.getItem('aetheris_currentUser');
+    const saved = localStorage.getItem('examify_hub_currentUser') || localStorage.getItem('aetheris_currentUser');
     return saved ? JSON.parse(saved) : null;
   },
 
   logout: async () => {
+    localStorage.removeItem('examify_hub_currentUser');
+    localStorage.removeItem('examify_hub_token');
     localStorage.removeItem('aetheris_currentUser');
     localStorage.removeItem('aetheris_token');
     return true;

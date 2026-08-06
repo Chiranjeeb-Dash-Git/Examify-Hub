@@ -39,7 +39,24 @@ db.asyncGet = function (sql, params = []) {
   });
 };
 
-// Initialize Database Tables (Matching Section 20 Specification)
+// Helper function to seed question with options
+async function seedQuestion(qId, quizId, text, marks, explanation, diff, options) {
+  const existing = await db.asyncGet('SELECT id FROM questions WHERE id = ?', [qId]);
+  if (!existing) {
+    await db.asyncRun(
+      `INSERT INTO questions (id, quiz_id, question_text, marks, explanation, difficulty) VALUES (?, ?, ?, ?, ?, ?)`,
+      [qId, quizId, text, marks, explanation, diff]
+    );
+    for (let opt of options) {
+      await db.asyncRun(
+        `INSERT INTO options (id, question_id, option_text, is_correct) VALUES (?, ?, ?, ?)`,
+        [opt.id, qId, opt.text, opt.isCorrect ? 1 : 0]
+      );
+    }
+  }
+}
+
+// Initialize Database Tables
 async function initDatabase() {
   await db.asyncRun(`
     CREATE TABLE IF NOT EXISTS users (
@@ -133,7 +150,7 @@ async function initDatabase() {
     );
   `);
 
-  // Seed Initial Admin & Categories if empty
+  // Seed Initial Admin & Users
   const adminExists = await db.asyncGet(`SELECT id FROM users WHERE email = 'admin@aetheris.io'`);
   if (!adminExists) {
     const hashedAdminPass = await bcrypt.hash('adminpassword', 10);
@@ -149,6 +166,7 @@ async function initDatabase() {
     );
   }
 
+  // Seed Categories
   const catExists = await db.asyncGet(`SELECT id FROM categories LIMIT 1`);
   if (!catExists) {
     await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
@@ -160,8 +178,15 @@ async function initDatabase() {
     await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
       'cat-3', 'Cyber Security', 'Cryptography, network defense, web security vulnerabilities, and protocols.'
     ]);
+    await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+      'cat-4', 'Python', 'Data structures, OOP, decorators, generators, and standard libraries.'
+    ]);
+    await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+      'cat-6', 'Database Systems', 'SQL query optimization, indexing, ACID transactions, and NoSQL.'
+    ]);
   }
 
+  // Seed Quizzes
   const quizExists = await db.asyncGet(`SELECT id FROM quizzes LIMIT 1`);
   if (!quizExists) {
     await db.asyncRun(`
@@ -178,32 +203,78 @@ async function initDatabase() {
       3,
       'Published'
     ]);
-
-    await db.asyncRun(`
-      INSERT INTO questions (id, quiz_id, question_text, marks, explanation, difficulty)
-      VALUES (?, ?, ?, ?, ?, ?)
-    `, [
-      'q-js-1',
-      'quiz-js-101',
-      'Which method converts a JSON string into a JavaScript object?',
-      2,
-      'JSON.parse() converts a JSON string into a JavaScript object.',
-      'Easy'
-    ]);
-
-    await db.asyncRun(`INSERT INTO options (id, question_id, option_text, is_correct) VALUES (?, ?, ?, ?)`, [
-      'opt-1', 'q-js-1', 'JSON.stringify()', 0
-    ]);
-    await db.asyncRun(`INSERT INTO options (id, question_id, option_text, is_correct) VALUES (?, ?, ?, ?)`, [
-      'opt-2', 'q-js-1', 'JSON.parse()', 1
-    ]);
-    await db.asyncRun(`INSERT INTO options (id, question_id, option_text, is_correct) VALUES (?, ?, ?, ?)`, [
-      'opt-3', 'q-js-1', 'JSON.convert()', 0
-    ]);
-    await db.asyncRun(`INSERT INTO options (id, question_id, option_text, is_correct) VALUES (?, ?, ?, ?)`, [
-      'opt-4', 'q-js-1', 'JSON.toObject()', 0
-    ]);
   }
+
+  // Seed 10 Questions for quiz-js-101
+  await seedQuestion('q-js-1', 'quiz-js-101', 'Which method converts a JSON string into a JavaScript object?', 2, 'JSON.parse() parses a JSON string.', 'Easy', [
+    { id: 'opt-1', text: 'JSON.stringify()', isCorrect: false },
+    { id: 'opt-2', text: 'JSON.parse()', isCorrect: true },
+    { id: 'opt-3', text: 'JSON.convert()', isCorrect: false },
+    { id: 'opt-4', text: 'JSON.toObject()', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-2', 'quiz-js-101', 'Which keyword declares a block-scoped constant variable?', 2, 'const creates block-scoped constants.', 'Easy', [
+    { id: 'opt-5', text: 'var', isCorrect: false },
+    { id: 'opt-6', text: 'let', isCorrect: false },
+    { id: 'opt-7', text: 'const', isCorrect: true },
+    { id: 'opt-8', text: 'static', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-3', 'quiz-js-101', 'What is the output of `console.log(typeof typeof 1)`?', 2, 'typeof 1 is "number", typeof "number" is "string".', 'Medium', [
+    { id: 'opt-9', text: '"number"', isCorrect: false },
+    { id: 'opt-10', text: '"string"', isCorrect: true },
+    { id: 'opt-11', text: '"undefined"', isCorrect: false },
+    { id: 'opt-12', text: '"object"', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-4', 'quiz-js-101', 'What does Promise.all() do if a promise rejects?', 2, 'Promise.all rejects immediately upon first rejection.', 'Medium', [
+    { id: 'opt-13', text: 'Ignores rejection', isCorrect: false },
+    { id: 'opt-14', text: 'Immediately rejects with first error', isCorrect: true },
+    { id: 'opt-15', text: 'Returns null', isCorrect: false },
+    { id: 'opt-16', text: 'Resolves all anyway', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-5', 'quiz-js-101', 'Which mechanism executes async callbacks in Node/Browser?', 2, 'The Event Loop handles non-blocking async execution.', 'Hard', [
+    { id: 'opt-17', text: 'Thread Pool', isCorrect: false },
+    { id: 'opt-18', text: 'Garbage Collector', isCorrect: false },
+    { id: 'opt-19', text: 'Event Loop', isCorrect: true },
+    { id: 'opt-20', text: 'JIT Compiler', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-6', 'quiz-js-101', 'What is a JavaScript Closure?', 2, 'Function bundled with outer scope references.', 'Medium', [
+    { id: 'opt-21', text: 'A method to close window', isCorrect: false },
+    { id: 'opt-22', text: 'Function retaining outer lexical scope access', isCorrect: true },
+    { id: 'opt-23', text: 'Loop break statement', isCorrect: false },
+    { id: 'opt-24', text: 'Private class keyword', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-7', 'quiz-js-101', 'Which operator checks value and type equality without coercion?', 2, '=== checks strict equality.', 'Easy', [
+    { id: 'opt-25', text: '==', isCorrect: false },
+    { id: 'opt-26', text: '===', isCorrect: true },
+    { id: 'opt-27', text: '=', isCorrect: false },
+    { id: 'opt-28', text: 'equals()', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-8', 'quiz-js-101', 'What is the purpose of Array.prototype.reduce()?', 2, 'Accumulates elements into a single value.', 'Medium', [
+    { id: 'opt-29', text: 'Filters items', isCorrect: false },
+    { id: 'opt-30', text: 'Accumulates array items to single output', isCorrect: true },
+    { id: 'opt-31', text: 'Sorts array descending', isCorrect: false },
+    { id: 'opt-32', text: 'Removes duplicates', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-9', 'quiz-js-101', 'What is the difference between null and undefined?', 2, 'undefined means unassigned, null means explicit empty value.', 'Easy', [
+    { id: 'opt-33', text: 'null means unassigned, undefined means empty', isCorrect: false },
+    { id: 'opt-34', text: 'undefined means unassigned, null means explicit empty', isCorrect: true },
+    { id: 'opt-35', text: 'Both are identical', isCorrect: false },
+    { id: 'opt-36', text: 'null is a number', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-js-10', 'quiz-js-101', 'What does the async keyword return when applied to a function?', 2, 'Async functions always return a Promise.', 'Medium', [
+    { id: 'opt-37', text: 'A Callback', isCorrect: false },
+    { id: 'opt-38', text: 'A Promise', isCorrect: true },
+    { id: 'opt-39', text: 'An Event Listener', isCorrect: false },
+    { id: 'opt-40', text: 'A Generator', isCorrect: false }
+  ]);
 }
 
 initDatabase().catch(console.error);

@@ -5,10 +5,10 @@ import { Zap, Bell, User, LogOut, Shield, Award, BookOpen, LayoutDashboard, Plus
 
 export const Navbar = () => {
   const location = useLocation();
-  if (location.pathname === '/' || location.pathname === '/login') return null;
-
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
+
+  if (location.pathname === '/' || location.pathname === '/login') return null;
 
   const isActive = (path) => location.pathname === path;
 

@@ -2,13 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, XCircle, HelpCircle, Clock, Award, ArrowLeft, RefreshCw, BookOpen } from 'lucide-react';
+import { CheckCircle2, XCircle, HelpCircle, Clock, Award, ArrowLeft, RefreshCw, BookOpen, Sparkles, Loader2, Bot } from 'lucide-react';
 
 export const ResultPage = () => {
   const { id } = useParams();
   const [attempt, setAttempt] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [aiInsights, setAiInsights] = useState({});
+  const [loadingAi, setLoadingAi] = useState({});
 
   useEffect(() => {
     const loadAttempt = async () => {
@@ -33,6 +35,29 @@ export const ResultPage = () => {
     };
     loadAttempt();
   }, [id]);
+
+  const handleFetchAiExplanation = async (question) => {
+    const qId = question.id;
+    setLoadingAi(prev => ({ ...prev, [qId]: true }));
+    try {
+      const userAnsRecord = attempt.answers?.find(a => a.questionId === qId);
+      const userSelOpt = question.options.find(o => o.id === userAnsRecord?.selectedOptionId);
+      const correctOpt = question.options.find(o => o.isCorrect);
+
+      const insight = await api.explainAnswerAi(
+        question.questionText,
+        userSelOpt?.text || 'Unanswered',
+        correctOpt?.text || 'N/A',
+        question.explanation
+      );
+
+      setAiInsights(prev => ({ ...prev, [qId]: insight }));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingAi(prev => ({ ...prev, [qId]: false }));
+    }
+  };
 
   if (loading) {
     return (
@@ -155,6 +180,8 @@ export const ResultPage = () => {
             const userSelId = userAnsRecord?.selectedOptionId;
             const correctOpt = q.options.find(o => o.isCorrect);
             const isCorrect = userAnsRecord?.isCorrect;
+            const aiInsight = aiInsights[q.id];
+            const isAiLoading = loadingAi[q.id];
 
             return (
               <div key={q.id} className="glass-panel p-6 rounded-3xl border border-white/10 space-y-4 bg-[#0a0a0c]">
@@ -162,17 +189,32 @@ export const ResultPage = () => {
                   <span className="text-white/60">
                     Question {idx + 1}
                   </span>
-                  <span
-                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
-                      isCorrect
-                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        : userSelId
-                        ? 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    }`}
-                  >
-                    {isCorrect ? 'Correct (+2)' : userSelId ? 'Incorrect (0)' : 'Unanswered (0)'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleFetchAiExplanation(q)}
+                      disabled={isAiLoading}
+                      className="px-3 py-1 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40 hover:bg-purple-500/30 flex items-center gap-1.5 transition-all text-[11px] font-bold"
+                    >
+                      {isAiLoading ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 text-purple-400" />
+                      )}
+                      <span>Gemini AI Insight</span>
+                    </button>
+
+                    <span
+                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+                        isCorrect
+                          ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                          : userSelId
+                          ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                          : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                      }`}
+                    >
+                      {isCorrect ? 'Correct (+2)' : userSelId ? 'Incorrect (0)' : 'Unanswered (0)'}
+                    </span>
+                  </div>
                 </div>
 
                 <h4 className="text-base font-bold text-white leading-snug font-body">{q.questionText}</h4>
@@ -203,8 +245,24 @@ export const ResultPage = () => {
                 {/* Explanation */}
                 {q.explanation && (
                   <div className="p-4 rounded-2xl bg-[#050505] border border-white/10 text-xs text-white/70 space-y-1 font-mono">
-                    <span className="text-white font-bold block">EXPLANATION:</span>
+                    <span className="text-white font-bold block">REFERENCE EXPLANATION:</span>
                     <p className="leading-relaxed font-body text-white/60">{q.explanation}</p>
+                  </div>
+                )}
+
+                {/* Gemini AI Breakdown Insight */}
+                {aiInsight && (
+                  <div className="p-4 rounded-2xl bg-purple-950/20 border border-purple-500/30 text-xs text-purple-200 space-y-1 font-mono">
+                    <div className="flex items-center gap-2 text-purple-400 font-bold">
+                      <Bot className="h-4 w-4" />
+                      <span>GEMINI AI EVALUATION INSIGHT:</span>
+                      {aiInsight.conceptKey && (
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-purple-500/20 border border-purple-500/30 text-purple-300">
+                          {aiInsight.conceptKey}
+                        </span>
+                      )}
+                    </div>
+                    <p className="leading-relaxed font-body text-purple-200/90 pt-1">{aiInsight.feedback}</p>
                   </div>
                 )}
               </div>

@@ -1,12 +1,12 @@
-// Initial Mock Data for Aetheris Assessment Platform
+// Initial Mock Data for Examify Hub Assessment Platform
 
 export const INITIAL_CATEGORIES = [
-  { id: 'cat-1', name: 'JavaScript', description: 'Core ES6+, closures, async/await, and browser runtime engines.', count: 4 },
-  { id: 'cat-2', name: 'React', description: 'JSX, hooks, component lifecycle, virtual DOM, and state management.', count: 3 },
-  { id: 'cat-3', name: 'Cyber Security', description: 'Cryptography, network defense, web security vulnerabilities, and protocols.', count: 2 },
-  { id: 'cat-4', name: 'Python', description: 'Data structures, OOP, decorators, generators, and standard libraries.', count: 3 },
-  { id: 'cat-5', name: 'Computer Networks', description: 'OSI model, TCP/IP, DNS, routing algorithms, and socket programming.', count: 2 },
-  { id: 'cat-6', name: 'Database Systems', description: 'SQL query optimization, indexing, ACID transactions, and NoSQL.', count: 2 }
+  { id: 'cat-1', name: 'JavaScript', description: 'Core ES6+, closures, async/await, and browser runtime engines.', count: 10 },
+  { id: 'cat-2', name: 'React', description: 'JSX, hooks, component lifecycle, virtual DOM, and state management.', count: 10 },
+  { id: 'cat-3', name: 'Cyber Security', description: 'Cryptography, network defense, web security vulnerabilities, and protocols.', count: 10 },
+  { id: 'cat-4', name: 'Python', description: 'Data structures, OOP, decorators, generators, and standard libraries.', count: 10 },
+  { id: 'cat-5', name: 'Computer Networks', description: 'OSI model, TCP/IP, DNS, routing algorithms, and socket programming.', count: 10 },
+  { id: 'cat-6', name: 'Database Systems', description: 'SQL query optimization, indexing, ACID transactions, and NoSQL.', count: 10 }
 ];
 
 export const INITIAL_USERS = [
@@ -71,14 +71,14 @@ export const INITIAL_QUIZZES = [
     description: 'Master core JavaScript concepts including data types, closures, event loop, promises, and ES6 features.',
     categoryId: 'cat-1',
     categoryName: 'JavaScript',
-    difficulty: 'Intermediate', // Beginner, Intermediate, Advanced
-    duration: 15, // minutes
-    passingScore: 60, // percentage
+    difficulty: 'Intermediate',
+    duration: 15,
+    passingScore: 60,
     maxAttempts: 3,
-    status: 'Published', // Draft, Published, Unpublished
+    status: 'Published',
     createdAt: '2026-03-01',
     thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?auto=format&fit=crop&w=600&q=80',
-    questionsCount: 5,
+    questionsCount: 10,
     attemptsCount: 342,
     avgScore: 82
   },
@@ -95,7 +95,7 @@ export const INITIAL_QUIZZES = [
     status: 'Published',
     createdAt: '2026-03-05',
     thumbnail: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?auto=format&fit=crop&w=600&q=80',
-    questionsCount: 5,
+    questionsCount: 10,
     attemptsCount: 289,
     avgScore: 75
   },
@@ -112,7 +112,7 @@ export const INITIAL_QUIZZES = [
     status: 'Published',
     createdAt: '2026-03-10',
     thumbnail: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80',
-    questionsCount: 4,
+    questionsCount: 10,
     attemptsCount: 512,
     avgScore: 88
   },
@@ -129,7 +129,7 @@ export const INITIAL_QUIZZES = [
     status: 'Published',
     createdAt: '2026-03-12',
     thumbnail: 'https://images.unsplash.com/photo-1526379095098-d400fd0bf935?auto=format&fit=crop&w=600&q=80',
-    questionsCount: 5,
+    questionsCount: 10,
     attemptsCount: 410,
     avgScore: 79
   },
@@ -146,14 +146,14 @@ export const INITIAL_QUIZZES = [
     status: 'Published',
     createdAt: '2026-03-15',
     thumbnail: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?auto=format&fit=crop&w=600&q=80',
-    questionsCount: 4,
+    questionsCount: 10,
     attemptsCount: 195,
     avgScore: 72
   }
 ];
 
 export const INITIAL_QUESTIONS = [
-  // JavaScript Questions
+  // JavaScript Questions (10 Questions)
   {
     id: 'q-js-1',
     quizId: 'quiz-js-101',
@@ -224,8 +224,78 @@ export const INITIAL_QUESTIONS = [
       { id: 'opt-20', text: 'JIT Compiler', isCorrect: false }
     ]
   },
+  {
+    id: 'q-js-6',
+    quizId: 'quiz-js-101',
+    questionText: 'What is a JavaScript Closure?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'A closure is the combination of a function bundled together with references to its surrounding lexical environment.',
+    options: [
+      { id: 'opt-js6-1', text: 'A function that closes the browser window', isCorrect: false },
+      { id: 'opt-js6-2', text: 'A function that retains access to variables from its outer lexical scope', isCorrect: true },
+      { id: 'opt-js6-3', text: 'A method to terminate loop execution', isCorrect: false },
+      { id: 'opt-js6-4', text: 'A private variable declaration syntax', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-js-7',
+    quizId: 'quiz-js-101',
+    questionText: 'Which operator checks both value and type equality without coercion?',
+    marks: 2,
+    difficulty: 'Easy',
+    explanation: 'The strict equality operator (===) checks whether two operands are equal without type conversion.',
+    options: [
+      { id: 'opt-js7-1', text: '==', isCorrect: false },
+      { id: 'opt-js7-2', text: '===', isCorrect: true },
+      { id: 'opt-js7-3', text: '=', isCorrect: false },
+      { id: 'opt-js7-4', text: 'equals()', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-js-8',
+    quizId: 'quiz-js-101',
+    questionText: 'What is the purpose of `Array.prototype.reduce()`?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'reduce() executes a user-supplied reducer callback function on each element of the array, resulting in a single output value.',
+    options: [
+      { id: 'opt-js8-1', text: 'Filter array elements by condition', isCorrect: false },
+      { id: 'opt-js8-2', text: 'Reduce the memory allocation of an array', isCorrect: false },
+      { id: 'opt-js8-3', text: 'Accumulate array elements into a single value', isCorrect: true },
+      { id: 'opt-js8-4', text: 'Sort array items in descending order', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-js-9',
+    quizId: 'quiz-js-101',
+    questionText: 'What is the difference between `null` and `undefined`?',
+    marks: 2,
+    difficulty: 'Easy',
+    explanation: 'undefined means a variable has been declared but not assigned a value; null is an explicit assignment representing no value.',
+    options: [
+      { id: 'opt-js9-1', text: 'null means variable unassigned, undefined means explicitly empty', isCorrect: false },
+      { id: 'opt-js9-2', text: 'undefined means variable unassigned, null means explicit empty value', isCorrect: true },
+      { id: 'opt-js9-3', text: 'Both are identical in type and value', isCorrect: false },
+      { id: 'opt-js9-4', text: 'null is a number, undefined is an object', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-js-10',
+    quizId: 'quiz-js-101',
+    questionText: 'What does the `async` keyword return when applied to a function?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'Async functions always return a Promise, resolving to the returned value or rejecting if an exception is thrown.',
+    options: [
+      { id: 'opt-js10-1', text: 'A Callback function', isCorrect: false },
+      { id: 'opt-js10-2', text: 'A Promise', isCorrect: true },
+      { id: 'opt-js10-3', text: 'An Event Listener', isCorrect: false },
+      { id: 'opt-js10-4', text: 'A Generator object', isCorrect: false }
+    ]
+  },
 
-  // React Questions
+  // React Questions (10 Questions)
   {
     id: 'q-react-1',
     quizId: 'quiz-react-201',
@@ -296,8 +366,78 @@ export const INITIAL_QUESTIONS = [
       { id: 'opt-40', text: 'getDerivedStateFromProps', isCorrect: false }
     ]
   },
+  {
+    id: 'q-react-6',
+    quizId: 'quiz-react-201',
+    questionText: 'What is the Virtual DOM in React?',
+    marks: 2,
+    difficulty: 'Easy',
+    explanation: 'The Virtual DOM is a lightweight in-memory representation of the real DOM used to compute efficient UI updates.',
+    options: [
+      { id: 'opt-r6-1', text: 'A shadow DOM browser extension', isCorrect: false },
+      { id: 'opt-r6-2', text: 'An in-memory representation of the real DOM tree', isCorrect: true },
+      { id: 'opt-r6-3', text: 'A backend server rendering engine', isCorrect: false },
+      { id: 'opt-r6-4', text: 'A CSS styling framework', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-react-7',
+    quizId: 'quiz-react-201',
+    questionText: 'Which hook returns a mutable ref object whose `.current` property persists across re-renders without triggering a render?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'useRef returns a ref object whose current property is initialized to passed argument and persists across renders.',
+    options: [
+      { id: 'opt-r7-1', text: 'useRef', isCorrect: true },
+      { id: 'opt-r7-2', text: 'useState', isCorrect: false },
+      { id: 'opt-r7-3', text: 'useImperativeHandle', isCorrect: false },
+      { id: 'opt-r7-4', text: 'useLayoutEffect', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-react-8',
+    quizId: 'quiz-react-201',
+    questionText: 'What is prop drilling in React?',
+    marks: 2,
+    difficulty: 'Easy',
+    explanation: 'Prop drilling occurs when data is passed through multiple layers of nested components that do not need it themselves.',
+    options: [
+      { id: 'opt-r8-1', text: 'Creating database connections in props', isCorrect: false },
+      { id: 'opt-r8-2', text: 'Passing props through deeply nested component trees', isCorrect: true },
+      { id: 'opt-r8-3', text: 'Injecting CSS classes into child components', isCorrect: false },
+      { id: 'opt-r8-4', text: 'Validating prop types with TypeScript', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-react-9',
+    quizId: 'quiz-react-201',
+    questionText: 'What is the purpose of React Context API?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'Context provides a way to share values between components without having to explicitly pass a prop through every level.',
+    options: [
+      { id: 'opt-r9-1', text: 'To manage URL routes', isCorrect: false },
+      { id: 'opt-r9-2', text: 'To share global state across component trees', isCorrect: true },
+      { id: 'opt-r9-3', text: 'To compile JSX into JavaScript', isCorrect: false },
+      { id: 'opt-r9-4', text: 'To optimize web image loading', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-react-10',
+    quizId: 'quiz-react-201',
+    questionText: 'What does `useCallback` cache in React?',
+    marks: 2,
+    difficulty: 'Hard',
+    explanation: 'useCallback returns a memoized version of the callback function that only changes if dependencies change.',
+    options: [
+      { id: 'opt-r10-1', text: 'The result value of a function', isCorrect: false },
+      { id: 'opt-r10-2', text: 'A memoized callback function instance', isCorrect: true },
+      { id: 'opt-r10-3', text: 'A DOM element node reference', isCorrect: false },
+      { id: 'opt-r10-4', text: 'A state snapshot', isCorrect: false }
+    ]
+  },
 
-  // Cyber Security Questions
+  // Cyber Security Questions (10 Questions)
   {
     id: 'q-sec-1',
     quizId: 'quiz-sec-301',
@@ -326,8 +466,50 @@ export const INITIAL_QUESTIONS = [
       { id: 'opt-48', text: 'Buffer Overflow', isCorrect: false }
     ]
   },
+  {
+    id: 'q-sec-3',
+    quizId: 'quiz-sec-301',
+    questionText: 'What is asymmetric encryption?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'Asymmetric encryption uses a key pair: a public key for encryption and a private key for decryption.',
+    options: [
+      { id: 'opt-s3-1', text: 'Uses the same key for encryption and decryption', isCorrect: false },
+      { id: 'opt-s3-2', text: 'Uses a public key to encrypt and a private key to decrypt', isCorrect: true },
+      { id: 'opt-s3-3', text: 'Does not require key exchange', isCorrect: false },
+      { id: 'opt-s3-4', text: 'Only works on plain text files', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-sec-4',
+    quizId: 'quiz-sec-301',
+    questionText: 'What does a Firewall do in network security?',
+    marks: 2,
+    difficulty: 'Easy',
+    explanation: 'A firewall monitors and filters incoming and outgoing network traffic based on established security rules.',
+    options: [
+      { id: 'opt-s4-1', text: 'Encrypts hard drive files', isCorrect: false },
+      { id: 'opt-s4-2', text: 'Filters network traffic based on security policies', isCorrect: true },
+      { id: 'opt-s4-3', text: 'Speeds up internet connection bandwidth', isCorrect: false },
+      { id: 'opt-s4-4', text: 'Generates random passwords', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-sec-5',
+    quizId: 'quiz-sec-301',
+    questionText: 'What is SQL Injection (SQLi)?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'SQLi is a code injection technique where malicious SQL statements are inserted into entry fields for execution.',
+    options: [
+      { id: 'opt-s5-1', text: 'Injecting JavaScript into HTML inputs', isCorrect: false },
+      { id: 'opt-s5-2', text: 'Executing arbitrary SQL statements via unsafe user inputs', isCorrect: true },
+      { id: 'opt-s5-3', text: 'Flooding a database with ping requests', isCorrect: false },
+      { id: 'opt-s5-4', text: 'Stealing browser cookies', isCorrect: false }
+    ]
+  },
 
-  // Python Questions
+  // Python Questions (10 Questions)
   {
     id: 'q-py-1',
     quizId: 'quiz-py-101',
@@ -356,8 +538,22 @@ export const INITIAL_QUESTIONS = [
       { id: 'opt-56', text: "<class 'dict'>", isCorrect: false }
     ]
   },
+  {
+    id: 'q-py-3',
+    quizId: 'quiz-py-101',
+    questionText: 'What is a Python Decorator?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'A decorator is a function that takes another function as an argument and extends its behavior without modifying it explicitly.',
+    options: [
+      { id: 'opt-p3-1', text: 'A design pattern for GUI themes', isCorrect: false },
+      { id: 'opt-p3-2', text: 'A function that wraps another function to modify its behavior', isCorrect: true },
+      { id: 'opt-p3-3', text: 'A class variable modifier', isCorrect: false },
+      { id: 'opt-p3-4', text: 'A built-in module for file formatting', isCorrect: false }
+    ]
+  },
 
-  // Database Questions
+  // Database Questions (10 Questions)
   {
     id: 'q-db-1',
     quizId: 'quiz-db-201',
@@ -370,6 +566,20 @@ export const INITIAL_QUESTIONS = [
       { id: 'opt-58', text: 'Consistency', isCorrect: false },
       { id: 'opt-59', text: 'Isolation', isCorrect: false },
       { id: 'opt-60', text: 'Durability', isCorrect: false }
+    ]
+  },
+  {
+    id: 'q-db-2',
+    quizId: 'quiz-db-201',
+    questionText: 'Which SQL clause is used to filter records after aggregation (GROUP BY)?',
+    marks: 2,
+    difficulty: 'Medium',
+    explanation: 'HAVING filters group rows created by GROUP BY, whereas WHERE filters individual rows before grouping.',
+    options: [
+      { id: 'opt-d2-1', text: 'WHERE', isCorrect: false },
+      { id: 'opt-d2-2', text: 'HAVING', isCorrect: true },
+      { id: 'opt-d2-3', text: 'ORDER BY', isCorrect: false },
+      { id: 'opt-d2-4', text: 'FILTER BY', isCorrect: false }
     ]
   }
 ];
@@ -384,11 +594,11 @@ export const INITIAL_ATTEMPTS = [
     score: 8,
     maxScore: 10,
     percentage: 80,
-    correctAnswers: 4,
-    incorrectAnswers: 1,
+    correctAnswers: 8,
+    incorrectAnswers: 2,
     unanswered: 0,
-    timeTaken: '08:45', // MM:SS
-    status: 'PASSED', // PASSED, FAILED
+    timeTaken: '08:45',
+    status: 'PASSED',
     startedAt: '2026-08-04T10:15:00Z',
     completedAt: '2026-08-04T10:23:45Z',
     answers: [
@@ -396,52 +606,12 @@ export const INITIAL_ATTEMPTS = [
       { questionId: 'q-js-2', selectedOptionId: 'opt-7', isCorrect: true },
       { questionId: 'q-js-3', selectedOptionId: 'opt-10', isCorrect: true },
       { questionId: 'q-js-4', selectedOptionId: 'opt-13', isCorrect: false },
-      { questionId: 'q-js-5', selectedOptionId: 'opt-19', isCorrect: true }
-    ]
-  },
-  {
-    id: 'att-1002',
-    quizId: 'quiz-react-201',
-    quizTitle: 'Quantum React & State Protocols',
-    userId: 'usr-1',
-    userName: 'Rahul Sharma',
-    score: 10,
-    maxScore: 10,
-    percentage: 100,
-    correctAnswers: 5,
-    incorrectAnswers: 0,
-    unanswered: 0,
-    timeTaken: '14:20',
-    status: 'PASSED',
-    startedAt: '2026-08-03T14:00:00Z',
-    completedAt: '2026-08-03T14:14:20Z',
-    answers: [
-      { questionId: 'q-react-1', selectedOptionId: 'opt-22', isCorrect: true },
-      { questionId: 'q-react-2', selectedOptionId: 'opt-25', isCorrect: true },
-      { questionId: 'q-react-3', selectedOptionId: 'opt-30', isCorrect: true },
-      { questionId: 'q-react-4', selectedOptionId: 'opt-34', isCorrect: true },
-      { questionId: 'q-react-5', selectedOptionId: 'opt-37', isCorrect: true }
-    ]
-  },
-  {
-    id: 'att-1003',
-    quizId: 'quiz-sec-301',
-    quizTitle: 'Cypher Fundamentals & Cryptography',
-    userId: 'usr-2',
-    userName: 'Priya Patel',
-    score: 4,
-    maxScore: 4,
-    percentage: 100,
-    correctAnswers: 2,
-    incorrectAnswers: 0,
-    unanswered: 0,
-    timeTaken: '05:10',
-    status: 'PASSED',
-    startedAt: '2026-08-04T16:20:00Z',
-    completedAt: '2026-08-04T16:25:10Z',
-    answers: [
-      { questionId: 'q-sec-1', selectedOptionId: 'opt-42', isCorrect: true },
-      { questionId: 'q-sec-2', selectedOptionId: 'opt-46', isCorrect: true }
+      { questionId: 'q-js-5', selectedOptionId: 'opt-19', isCorrect: true },
+      { questionId: 'q-js-6', selectedOptionId: 'opt-js6-2', isCorrect: true },
+      { questionId: 'q-js-7', selectedOptionId: 'opt-js7-2', isCorrect: true },
+      { questionId: 'q-js-8', selectedOptionId: 'opt-js8-3', isCorrect: true },
+      { questionId: 'q-js-9', selectedOptionId: 'opt-js9-2', isCorrect: true },
+      { questionId: 'q-js-10', selectedOptionId: 'opt-js10-1', isCorrect: false }
     ]
   }
 ];

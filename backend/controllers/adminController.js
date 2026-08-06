@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const geminiService = require('../services/geminiService');
 
 exports.getAdminAnalytics = async (req, res) => {
   try {
@@ -94,5 +95,43 @@ exports.getLeaderboard = async (req, res) => {
     res.json(ranked);
   } catch (err) {
     res.status(500).json({ message: 'Error fetching leaderboard', error: err.message });
+  }
+};
+
+/**
+ * Gemini AI Question Generator Endpoint (Admin only)
+ */
+exports.generateAiQuestions = async (req, res) => {
+  try {
+    const { topic, difficulty, count } = req.body;
+    if (!topic) return res.status(400).json({ message: 'Topic is required for Gemini AI question generation.' });
+
+    const questions = await geminiService.generateQuestionsWithAi({
+      topic,
+      difficulty: difficulty || 'Intermediate',
+      count: count || 3
+    });
+
+    res.json({ success: true, questions });
+  } catch (err) {
+    res.status(500).json({ message: 'Gemini AI generation failed', error: err.message });
+  }
+};
+
+/**
+ * Gemini AI Answer Explanation Endpoint (Candidates & Evaluation)
+ */
+exports.explainAnswerAi = async (req, res) => {
+  try {
+    const { questionText, selectedOption, correctOption, explanation } = req.body;
+    const aiInsight = await geminiService.explainAnswerWithAi({
+      questionText,
+      selectedOption,
+      correctOption,
+      explanation
+    });
+    res.json(aiInsight);
+  } catch (err) {
+    res.status(500).json({ message: 'AI explanation failed', error: err.message });
   }
 };

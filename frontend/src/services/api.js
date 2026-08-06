@@ -97,6 +97,41 @@ export const api = {
     return newCat;
   },
 
+  // saveCategory — creates a new category, syncs with backend, returns {id, name}
+  saveCategory: async (categoryData) => {
+    const categories = getStorage('categories', INITIAL_CATEGORIES);
+    const newCat = {
+      id: `cat-${Date.now()}`,
+      name: categoryData.name,
+      description: categoryData.description || '',
+      count: 0
+    };
+    categories.push(newCat);
+    setStorage('categories', categories);
+
+    // Sync with backend
+    try {
+      const response = await fetch('/api/categories', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('examify_hub_token')}`
+        },
+        body: JSON.stringify({ name: categoryData.name, description: categoryData.description || '' })
+      });
+      if (response.ok) {
+        const serverCat = await response.json();
+        // Use server-assigned id if available
+        return { ...newCat, id: serverCat.id || newCat.id, name: serverCat.name || newCat.name };
+      }
+    } catch (e) {
+      console.warn('Backend category sync warning:', e.message);
+    }
+    return newCat;
+  },
+
+
+
   updateCategory: async (id, updatedFields) => {
     const categories = getStorage('categories', INITIAL_CATEGORIES);
     const index = categories.findIndex(c => c.id === id);

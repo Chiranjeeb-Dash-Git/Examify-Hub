@@ -18,6 +18,10 @@ export const AdminQuizzesPage = () => {
   const [pdfFileName, setPdfFileName] = useState('');
   const [pdfCategory, setPdfCategory] = useState(categories[0]?.id || 'cat-1');
   const [pdfScanning, setPdfScanning] = useState(false);
+  const [pdfScanProgress, setPdfScanProgress] = useState('');
+  // New Category inline creation
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isCreatingCategory, setIsCreatingCategory] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -134,38 +138,89 @@ export const AdminQuizzesPage = () => {
     }
   };
 
-  // PDF File Upload Handler
+  // PDF File Upload Handler — non-blocking using async FileReader
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setPdfFileName(file.name);
+    setPdfText('');
+    setPdfScanProgress('Reading file...');
 
+    // Use async reader to avoid blocking main thread
     const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result;
-      if (typeof content === 'string') {
-        setPdfText(content);
-      }
+      // Schedule state update off the critical path
+      setTimeout(() => {
+        const raw = event.target?.result;
+        // Handle both text and ArrayBuffer (for .pdf binary)
+        if (typeof raw === 'string') {
+          setPdfText(raw);
+        } else if (raw instanceof ArrayBuffer) {
+          // Decode binary — extract printable ASCII text from PDF
+          const bytes = new Uint8Array(raw);
+          let text = '';
+          for (let i = 0; i < bytes.length; i++) {
+            const c = bytes[i];
+            if (c >= 32 && c < 127) text += String.fromCharCode(c);
+            else if (c === 10 || c === 13) text += '\n';
+          }
+          setPdfText(text.replace(/\s{3,}/g, '\n'));
+        }
+        setPdfScanProgress('File ready. Click scan to generate quiz.');
+      }, 0);
     };
-    reader.readAsText(file);
+    reader.onerror = () => setPdfScanProgress('File read error. Please paste text manually.');
+    // Read as text for .txt, as binary for .pdf/.doc
+    if (file.name.endsWith('.txt')) {
+      reader.readAsText(file);
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
   };
 
-  // Scan PDF Question Paper & Auto-Create Quiz
+  // Create new category inline before scanning
+  const handleCreateNewCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    setIsCreatingCategory(true);
+    try {
+      const result = await api.saveCategory({ name: newCategoryName.trim() });
+      await refreshData();
+      setPdfCategory(result.id);
+      setNewCategoryName('');
+      setPdfScanProgress(`Category "${result.name || newCategoryName}" created!`);
+    } catch (err) {
+      setPdfScanProgress(`Category creation failed: ${err.message}`);
+    } finally {
+      setIsCreatingCategory(false);
+    }
+  };
+
+  // Scan PDF Question Paper & Auto-Create Quiz — uses Promise.all for non-blocking batch saves
   const handleScanPdfAndCreateQuiz = async (e) => {
     e.preventDefault();
-    if (!pdfText && !pdfFileName) {
-      alert('Please select a PDF file or paste question paper text content.');
+    if (!pdfText.trim() && !pdfFileName) {
+      alert('Please select a file or paste question paper text first.');
       return;
     }
 
     setPdfScanning(true);
+    setPdfScanProgress('🤖 Sending to Gemini AI for intelligent parsing...');
     try {
+      // Yield to browser before heavy async work
+      await new Promise(resolve => setTimeout(resolve, 50));
+
       const parsed = await api.parsePdfQuestionPaper(pdfText || pdfFileName);
-      
+      setPdfScanProgress(`✅ Parsed ${parsed.questions?.length || 0} questions. Creating quiz...`);
+
+      // Yield again
+      await new Promise(resolve => setTimeout(resolve, 30));
+
+      const resolvedCategoryId = pdfCategory === '__new__' ? (categories[0]?.id || 'cat-1') : pdfCategory;
+
       const newQuiz = await api.saveQuiz({
-        title: parsed.title || `Exam: ${pdfFileName.replace(/\.[^/.]+$/, "")}`,
-        description: parsed.description || 'Auto-scanned evaluation course created from PDF question paper.',
-        categoryId: pdfCategory,
+        title: parsed.title || `Exam: ${pdfFileName.replace(/\.[^/.]+$/, '') || 'PDF Paper'}`,
+        description: parsed.description || 'Auto-scanned assessment generated from uploaded PDF question paper.',
+        categoryId: resolvedCategoryId,
         difficulty: parsed.difficulty || 'Intermediate',
         duration: parsed.duration || 20,
         passingScore: parsed.passingScore || 60,
@@ -175,22 +230,33 @@ export const AdminQuizzesPage = () => {
       });
 
       if (parsed.questions && parsed.questions.length > 0) {
-        for (let q of parsed.questions) {
-          await api.saveQuestion({
-            quizId: newQuiz.id,
-            questionText: q.questionText,
-            marks: q.marks || 2,
-            difficulty: q.difficulty || 'Easy',
-            explanation: q.explanation || '',
-            options: q.options
-          });
-        }
+        setPdfScanProgress(`💾 Saving ${parsed.questions.length} questions in parallel...`);
+        // Save ALL questions in parallel — non-blocking
+        await Promise.all(
+          parsed.questions.map(q =>
+            api.saveQuestion({
+              quizId: newQuiz.id,
+              questionText: q.questionText,
+              marks: q.marks || 2,
+              difficulty: q.difficulty || 'Easy',
+              explanation: q.explanation || '',
+              options: q.options
+            })
+          )
+        );
       }
 
+      setPdfScanProgress('🎉 Quiz published! Refreshing...');
       await refreshData();
+
+      // Reset modal
       setShowPdfModal(false);
-      alert(`Success! Generated Quiz "${newQuiz.title}" with ${parsed.questions?.length || 0} digitized questions and published to student portal.`);
+      setPdfText('');
+      setPdfFileName('');
+      setPdfScanProgress('');
+      alert(`✅ Success! Quiz "${newQuiz.title}" with ${parsed.questions?.length || 0} questions is now LIVE for students.`);
     } catch (err) {
+      setPdfScanProgress(`❌ Failed: ${err.message}`);
       alert(`PDF Scanning Failed: ${err.message}`);
     } finally {
       setPdfScanning(false);
@@ -503,38 +569,77 @@ export const AdminQuizzesPage = () => {
                 />
               </div>
 
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 <label className="block text-white/60 uppercase">Target Category Directive</label>
                 <select
                   value={pdfCategory}
-                  onChange={(e) => setPdfCategory(e.target.value)}
+                  onChange={(e) => {
+                    setPdfCategory(e.target.value);
+                    if (e.target.value !== '__new__') setNewCategoryName('');
+                  }}
                   className="w-full p-3 rounded-xl bg-[#050505] border border-white/10 text-white font-mono text-xs"
                 >
                   {categories.map(c => (
                     <option key={c.id} value={c.id}>{c.name}</option>
                   ))}
+                  <option value="__new__">➕ Create New Category...</option>
                 </select>
+
+                {/* Inline New Category Creator */}
+                {pdfCategory === '__new__' && (
+                  <div className="flex items-center gap-2 p-3 rounded-xl bg-purple-950/20 border border-purple-500/30">
+                    <input
+                      type="text"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleCreateNewCategory())}
+                      placeholder="e.g. Machine Learning, DevOps, DSA..."
+                      className="flex-1 bg-transparent border-none outline-none text-white placeholder-white/30 text-xs font-mono"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCreateNewCategory}
+                      disabled={!newCategoryName.trim() || isCreatingCategory}
+                      className="px-3 py-1.5 rounded-lg bg-purple-600 text-white text-[11px] font-bold uppercase disabled:opacity-40 hover:bg-purple-500 transition-all flex items-center gap-1"
+                    >
+                      {isCreatingCategory ? <Loader2 className="h-3 w-3 animate-spin" /> : <Plus className="h-3 w-3" />}
+                      {isCreatingCategory ? 'Creating...' : 'Create'}
+                    </button>
+                  </div>
+                )}
               </div>
+
+              {/* Progress Status */}
+              {pdfScanProgress && (
+                <div className={`px-3 py-2 rounded-xl text-[11px] font-mono ${
+                  pdfScanProgress.startsWith('❌') ? 'bg-red-500/10 border border-red-500/30 text-red-300'
+                  : pdfScanProgress.startsWith('✅') || pdfScanProgress.startsWith('🎉') ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-300'
+                  : 'bg-purple-500/10 border border-purple-500/30 text-purple-300'
+                }`}>
+                  {pdfScanProgress}
+                </div>
+              )}
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
                 <button
                   type="button"
-                  onClick={() => setShowPdfModal(false)}
+                  onClick={() => { setShowPdfModal(false); setPdfScanProgress(''); setPdfText(''); setPdfFileName(''); }}
                   disabled={pdfScanning}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 text-white hover:bg-white/10"
+                  className="px-4 py-2.5 rounded-xl bg-white/5 text-white hover:bg-white/10 disabled:opacity-40"
                 >
                   Cancel
                 </button>
 
                 <button
                   type="submit"
-                  disabled={pdfScanning}
-                  className="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-bold uppercase tracking-wider hover:bg-purple-500 flex items-center gap-2 shadow-lg shadow-purple-600/30"
+                  disabled={pdfScanning || (!pdfText.trim() && !pdfFileName)}
+                  className="px-5 py-2.5 rounded-xl bg-purple-600 text-white font-bold uppercase tracking-wider hover:bg-purple-500 flex items-center gap-2 shadow-lg shadow-purple-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {pdfScanning ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      <span>Scanning PDF & Generating Quiz...</span>
+                      <span>AI Processing...</span>
                     </>
                   ) : (
                     <>

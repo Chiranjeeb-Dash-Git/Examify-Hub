@@ -81,10 +81,16 @@ export const QuizProvider = ({ children }) => {
   };
 
   const selectAnswer = (questionId, optionId) => {
-    setUserAnswers(prev => ({
-      ...prev,
-      [questionId]: optionId
-    }));
+    setUserAnswers(prev => {
+      // Strict Industry Lock: Once an answer is selected for a question, lock it permanently!
+      if (prev[questionId]) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [questionId]: optionId
+      };
+    });
   };
 
   const value = {

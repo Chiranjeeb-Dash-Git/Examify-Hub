@@ -118,13 +118,23 @@ export const api = {
   // Quizzes
   getQuizzes: async () => {
     const localQuizzes = getStorage('quizzes', INITIAL_QUIZZES);
+    const questions = getStorage('questions', INITIAL_QUESTIONS);
+
+    const computeCount = (qId) => {
+      const actualCount = questions.filter(item => item.quizId === qId).length;
+      return actualCount > 0 ? actualCount : 10;
+    };
+
     try {
       const response = await fetch('/api/quizzes');
       if (response.ok) {
         const serverQuizzes = await response.json();
         const map = new Map();
         [...INITIAL_QUIZZES, ...localQuizzes, ...serverQuizzes].forEach(q => {
-          map.set(q.id, q);
+          map.set(q.id, {
+            ...q,
+            questionsCount: computeCount(q.id)
+          });
         });
         const merged = Array.from(map.values());
         setStorage('quizzes', merged);
@@ -133,7 +143,10 @@ export const api = {
     } catch (e) {
       console.warn('Using local storage quizzes:', e.message);
     }
-    return localQuizzes;
+    return localQuizzes.map(q => ({
+      ...q,
+      questionsCount: computeCount(q.id)
+    }));
   },
 
   getQuizById: async (id) => {

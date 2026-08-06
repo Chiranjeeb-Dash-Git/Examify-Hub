@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuiz } from '../context/QuizContext';
 import { useAuth } from '../context/AuthContext';
-import { Clock, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Send } from 'lucide-react';
+import { Clock, ChevronLeft, ChevronRight, CheckCircle2, AlertTriangle, Send, Lock, ShieldCheck } from 'lucide-react';
 
 export const ActiveQuizPage = () => {
   const navigate = useNavigate();
@@ -57,6 +57,7 @@ export const ActiveQuizPage = () => {
   if (!activeQuiz || activeQuestions.length === 0) return null;
 
   const currentQuestion = activeQuestions[currentQuestionIndex];
+  const isQuestionAnswered = !!userAnswers[currentQuestion.id];
   const formatTime = (secs) => {
     const m = Math.floor(secs / 60).toString().padStart(2, '0');
     const s = (secs % 60).toString().padStart(2, '0');
@@ -98,9 +99,16 @@ export const ActiveQuizPage = () => {
               <span className="text-white/80 font-bold uppercase tracking-wider">
                 Question {currentQuestionIndex + 1} of {activeQuestions.length}
               </span>
-              <span className="text-white/50 bg-[#050505] px-3 py-1 rounded-md border border-white/10">
-                Marks: {currentQuestion.marks || 2}
-              </span>
+              {isQuestionAnswered ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>🔒 Answer Locked</span>
+                </span>
+              ) : (
+                <span className="text-white/50 bg-[#050505] px-3 py-1 rounded-md border border-white/10">
+                  Marks: {currentQuestion.marks || 2}
+                </span>
+              )}
             </div>
 
             <h3 className="text-xl sm:text-2xl font-bold text-white leading-snug font-body">
@@ -119,23 +127,34 @@ export const ActiveQuizPage = () => {
                 <button
                   key={optId || idx}
                   type="button"
+                  disabled={isQuestionAnswered}
                   onClick={() => selectAnswer(currentQuestion.id, optId)}
-                  className={`w-full p-4 rounded-2xl text-left border flex items-center gap-4 transition-all duration-200 cursor-pointer ${
+                  className={`w-full p-4 rounded-2xl text-left border flex items-center justify-between gap-4 transition-all duration-200 ${
                     isSelected
-                      ? 'bg-white/15 border-white text-white shadow-xl shadow-white/5'
-                      : 'bg-[#050505] border-white/10 text-white/80 hover:bg-white/5 hover:border-white/20'
+                      ? 'bg-emerald-500/20 border-emerald-500 text-emerald-100 font-bold shadow-xl shadow-emerald-500/10'
+                      : isQuestionAnswered
+                      ? 'bg-[#050505]/40 border-white/5 text-white/30 cursor-not-allowed opacity-50'
+                      : 'bg-[#050505] border-white/10 text-white/80 hover:bg-white/5 hover:border-white/20 cursor-pointer'
                   }`}
                 >
-                  <div
-                    className={`h-8 w-8 rounded-xl flex items-center justify-center font-mono font-bold text-xs shrink-0 transition-colors ${
-                      isSelected
-                        ? 'bg-white text-black'
-                        : 'bg-white/10 text-white/60'
-                    }`}
-                  >
-                    {optionLetter}
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={`h-8 w-8 rounded-xl flex items-center justify-center font-mono font-bold text-xs shrink-0 transition-colors ${
+                        isSelected
+                          ? 'bg-emerald-400 text-black'
+                          : 'bg-white/10 text-white/60'
+                      }`}
+                    >
+                      {optionLetter}
+                    </div>
+                    <span className="text-sm font-medium leading-relaxed">{option.text || option.option_text}</span>
                   </div>
-                  <span className="text-sm font-medium leading-relaxed">{option.text || option.option_text}</span>
+                  {isSelected && (
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/30 text-emerald-300 font-mono text-[10px] font-bold uppercase tracking-wider shrink-0">
+                      <Lock className="h-3 w-3" />
+                      <span>Locked</span>
+                    </div>
+                  )}
                 </button>
               );
             })}

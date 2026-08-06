@@ -117,28 +117,28 @@ export const AdminQuestionsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#10141a] flex">
+    <div className="min-h-screen bg-[#050505] flex text-white font-body">
       <AdminSidebar />
 
       <main className="flex-grow p-6 sm:p-8 space-y-8 overflow-y-auto">
-        <Link to="/admin/quizzes" className="inline-flex items-center gap-2 text-xs font-mono text-[#38BDF8] hover:underline">
+        <Link to="/admin/quizzes" className="inline-flex items-center gap-2 text-xs font-mono text-white/60 hover:text-white transition-colors uppercase tracking-wider">
           <ArrowLeft className="h-4 w-4" />
-          Back to Quiz Directives
+          <span>Back to Quiz Directives</span>
         </Link>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-white">
-              Question Bank: <span className="text-[#38BDF8]">{quiz?.title || 'Quiz'}</span>
+            <h1 className="font-display font-extrabold text-3xl text-white tracking-tight">
+              Question Bank: <span className="text-white/80">{quiz?.title || 'Quiz'}</span>
             </h1>
-            <p className="mt-1 text-sm text-[#88929b] font-mono">
-              Manage items, options, correct answers, and explanations.
+            <p className="mt-1 text-sm text-white/60 font-mono">
+              Manage items, options, correct answers, and explanations
             </p>
           </div>
 
           <button
             onClick={() => handleOpenModal()}
-            className="px-5 py-2.5 rounded-xl bg-[#6be026] text-[#10141a] font-bold text-xs hover:bg-[#6be026]/90 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-white/90 transition-all flex items-center gap-2 shadow-lg shadow-white/10"
           >
             <Plus className="h-4 w-4" />
             Add Question

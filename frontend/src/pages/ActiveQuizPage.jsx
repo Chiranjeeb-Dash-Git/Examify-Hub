@@ -32,7 +32,6 @@ export const ActiveQuizPage = () => {
   // Countdown timer interval
   useEffect(() => {
     if (remainingSeconds <= 0 && activeQuiz) {
-      // Auto submit on time expiry!
       handleFinalSubmit();
       return;
     }
@@ -68,20 +67,20 @@ export const ActiveQuizPage = () => {
   const isTimeCritical = remainingSeconds < 120; // < 2 mins
 
   return (
-    <div className="min-h-screen bg-[#10141a] py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col space-y-6">
+    <div className="min-h-screen bg-[#050505] py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col space-y-6 text-white font-body">
       {/* Assessment Header Toolbar */}
-      <header className="glass-panel p-4 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-4 z-30">
+      <header className="glass-panel p-4 rounded-2xl border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 sticky top-4 z-30 bg-[#0a0a0c]/90 backdrop-blur-xl">
         <div>
-          <span className="text-[10px] font-mono text-[#38BDF8] uppercase tracking-widest">ACTIVE DIRECTIVE</span>
-          <h2 className="text-xl font-bold text-white leading-tight">{activeQuiz.title}</h2>
+          <span className="text-[10px] font-mono text-white/50 uppercase tracking-widest">ACTIVE DIRECTIVE TELEMETRY</span>
+          <h2 className="font-display text-xl font-bold text-white leading-tight">{activeQuiz.title}</h2>
         </div>
 
-        {/* Live Countdown Timer (Matching Stitch Design) */}
+        {/* Live Countdown Timer */}
         <div
           className={`flex items-center gap-2 px-4 py-2 rounded-xl font-mono text-sm font-bold border transition-colors ${
             isTimeCritical
               ? 'bg-red-500/20 text-red-400 border-red-500/40 animate-pulse'
-              : 'bg-[#181c22] text-[#38BDF8] border-[#38BDF8]/30'
+              : 'bg-[#050505] text-white border-white/20'
           }`}
         >
           <Clock className="h-4 w-4" />
@@ -92,19 +91,19 @@ export const ActiveQuizPage = () => {
       {/* Main Workspace Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-grow">
         {/* Question & Options Area (3 cols) */}
-        <div className="lg:col-span-3 glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 flex flex-col justify-between space-y-8">
+        <div className="lg:col-span-3 glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 flex flex-col justify-between space-y-8 bg-[#0a0a0c]">
           {/* Question Metadata */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-              <span className="text-xs font-mono text-[#38BDF8]">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 font-mono text-xs">
+              <span className="text-white/80 font-bold uppercase tracking-wider">
                 Question {currentQuestionIndex + 1} of {activeQuestions.length}
               </span>
-              <span className="text-xs font-mono text-[#88929b] bg-[#262a31] px-2.5 py-1 rounded-md">
+              <span className="text-white/50 bg-[#050505] px-3 py-1 rounded-md border border-white/10">
                 Marks: {currentQuestion.marks || 2}
               </span>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-bold text-white leading-snug">
+            <h3 className="text-xl sm:text-2xl font-bold text-white leading-snug font-body">
               {currentQuestion.questionText}
             </h3>
           </div>
@@ -121,15 +120,15 @@ export const ActiveQuizPage = () => {
                   onClick={() => selectAnswer(currentQuestion.id, option.id)}
                   className={`w-full p-4 rounded-2xl text-left border flex items-center gap-4 transition-all duration-200 ${
                     isSelected
-                      ? 'bg-[#38BDF8]/15 border-[#38BDF8] text-white shadow-lg shadow-[#38BDF8]/10'
-                      : 'bg-[#181c22] border-white/5 text-[#dfe2eb] hover:bg-[#262a31] hover:border-white/20'
+                      ? 'bg-white/15 border-white text-white shadow-xl shadow-white/5'
+                      : 'bg-[#050505] border-white/10 text-white/80 hover:bg-white/5 hover:border-white/20'
                   }`}
                 >
                   <div
                     className={`h-8 w-8 rounded-xl flex items-center justify-center font-mono font-bold text-xs shrink-0 transition-colors ${
                       isSelected
-                        ? 'bg-[#38BDF8] text-[#10141a]'
-                        : 'bg-[#262a31] text-[#88929b]'
+                        ? 'bg-white text-black'
+                        : 'bg-white/10 text-white/60'
                     }`}
                   >
                     {optionLetter}
@@ -141,11 +140,11 @@ export const ActiveQuizPage = () => {
           </div>
 
           {/* Bottom Navigation Buttons */}
-          <div className="flex items-center justify-between pt-6 border-t border-white/10">
+          <div className="flex items-center justify-between pt-6 border-t border-white/10 font-mono">
             <button
               onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
               disabled={currentQuestionIndex === 0}
-              className="px-5 py-2.5 rounded-xl bg-[#262a31] hover:bg-white/10 disabled:opacity-30 disabled:hover:bg-[#262a31] text-xs font-semibold text-white flex items-center gap-2 transition-all"
+              className="px-5 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 text-xs font-semibold text-white flex items-center gap-2 transition-all"
             >
               <ChevronLeft className="h-4 w-4" />
               Previous
@@ -154,7 +153,7 @@ export const ActiveQuizPage = () => {
             {currentQuestionIndex < activeQuestions.length - 1 ? (
               <button
                 onClick={() => setCurrentQuestionIndex(prev => Math.min(activeQuestions.length - 1, prev + 1))}
-                className="px-5 py-2.5 rounded-xl bg-[#38BDF8] text-[#10141a] hover:bg-[#38BDF8]/90 text-xs font-bold flex items-center gap-2 shadow-md shadow-[#38BDF8]/20 transition-all"
+                className="px-5 py-2.5 rounded-xl bg-white text-black hover:bg-white/90 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-white/10 transition-all"
               >
                 Next Question
                 <ChevronRight className="h-4 w-4" />
@@ -162,7 +161,7 @@ export const ActiveQuizPage = () => {
             ) : (
               <button
                 onClick={() => setShowSubmitModal(true)}
-                className="px-6 py-2.5 rounded-xl bg-[#6be026] text-[#10141a] hover:bg-[#6be026]/90 text-xs font-bold flex items-center gap-2 shadow-md shadow-[#6be026]/20 transition-all"
+                className="px-6 py-2.5 rounded-xl bg-emerald-400 text-black hover:bg-emerald-300 text-xs font-bold uppercase tracking-wider flex items-center gap-2 shadow-lg shadow-emerald-400/20 transition-all"
               >
                 <Send className="h-4 w-4" />
                 Submit Assessment
@@ -172,11 +171,11 @@ export const ActiveQuizPage = () => {
         </div>
 
         {/* Question Index Sidebar (1 col) */}
-        <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-6 flex flex-col justify-between">
+        <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-6 flex flex-col justify-between bg-[#0a0a0c]">
           <div className="space-y-4">
-            <h4 className="text-sm font-bold text-white flex items-center justify-between">
+            <h4 className="text-xs font-mono font-bold text-white flex items-center justify-between uppercase tracking-wider">
               <span>Question Palette</span>
-              <span className="text-xs font-mono text-[#38BDF8]">
+              <span className="text-white/60">
                 {answeredCount}/{activeQuestions.length} Done
               </span>
             </h4>
@@ -193,10 +192,10 @@ export const ActiveQuizPage = () => {
                     onClick={() => setCurrentQuestionIndex(idx)}
                     className={`h-10 rounded-xl font-mono text-xs font-bold transition-all relative ${
                       isCurrent
-                        ? 'bg-[#38BDF8] text-[#10141a] ring-2 ring-[#38BDF8]/50'
+                        ? 'bg-white text-black ring-2 ring-white/50'
                         : isAnswered
-                        ? 'bg-[#6be026]/20 text-[#6be026] border border-[#6be026]/40'
-                        : 'bg-[#181c22] text-[#88929b] border border-white/5 hover:border-white/20'
+                        ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                        : 'bg-[#050505] text-white/40 border border-white/10 hover:border-white/30'
                     }`}
                   >
                     {idx + 1}
@@ -209,7 +208,7 @@ export const ActiveQuizPage = () => {
           {/* Quick Submit */}
           <button
             onClick={() => setShowSubmitModal(true)}
-            className="w-full py-3 rounded-xl bg-[#6be026] text-[#10141a] font-bold text-xs hover:bg-[#6be026]/90 transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 rounded-xl bg-emerald-400 text-black font-mono text-xs uppercase font-bold tracking-wider hover:bg-emerald-300 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-400/20"
           >
             <Send className="h-4 w-4" />
             Submit Final Answers
@@ -220,28 +219,28 @@ export const ActiveQuizPage = () => {
       {/* Confirmation Modal */}
       {showSubmitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-md glass-panel p-6 rounded-3xl border border-white/10 space-y-6">
-            <div className="flex items-center gap-3 text-amber-400">
+          <div className="w-full max-w-md glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6 bg-[#0a0a0c]">
+            <div className="flex items-center gap-3 text-amber-300">
               <AlertTriangle className="h-6 w-6" />
-              <h3 className="text-lg font-bold text-white">Confirm Assessment Submission</h3>
+              <h3 className="font-display text-lg font-bold text-white">Confirm Assessment Submission</h3>
             </div>
 
-            <p className="text-xs text-[#88929b] leading-relaxed">
-              You have answered <span className="text-[#38BDF8] font-bold">{answeredCount}</span> out of{' '}
+            <p className="text-xs text-white/60 font-mono leading-relaxed">
+              You have answered <span className="text-white font-bold">{answeredCount}</span> out of{' '}
               <span className="text-white font-bold">{activeQuestions.length}</span> questions. Once submitted, answers cannot be edited.
             </p>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-3 pt-2 font-mono">
               <button
                 onClick={() => setShowSubmitModal(false)}
-                className="px-4 py-2 rounded-xl bg-[#262a31] text-xs font-semibold text-white hover:bg-white/10"
+                className="px-4 py-2.5 rounded-xl bg-white/5 text-xs font-semibold text-white hover:bg-white/10 border border-white/10"
               >
                 Continue Quiz
               </button>
               <button
                 onClick={handleFinalSubmit}
                 disabled={submitting}
-                className="px-5 py-2 rounded-xl bg-[#6be026] text-[#10141a] text-xs font-bold hover:bg-[#6be026]/90"
+                className="px-5 py-2.5 rounded-xl bg-emerald-400 text-black text-xs font-bold uppercase tracking-wider hover:bg-emerald-300"
               >
                 {submitting ? 'Processing Score...' : 'Yes, Submit Now'}
               </button>

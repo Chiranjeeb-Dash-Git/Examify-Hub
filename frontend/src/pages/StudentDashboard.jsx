@@ -169,24 +169,27 @@ export const StudentDashboard = () => {
         </div>
       </div>
 
-      {/* Recommended Directives (Matching Stitch Screenshot 2) */}
+      {/* Recommended Directives Catalog */}
       <div className="space-y-6 pt-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-white tracking-tight">Recommended Directives</h2>
+          <div>
+            <h2 className="font-display text-2xl font-bold text-white tracking-tight">Available Assessment Directives</h2>
+            <p className="text-xs text-white/60 font-mono mt-0.5">Explore active evaluation courses and skill benchmarks</p>
+          </div>
           <Link
             to="/quizzes"
-            className="text-xs font-semibold text-[#38BDF8] hover:underline flex items-center gap-1"
+            className="text-xs font-mono font-bold text-white/80 hover:text-white border border-white/20 px-3.5 py-1.5 rounded-full hover:bg-white/10 transition-all flex items-center gap-1.5"
           >
-            View All Archive
+            <span>View Full Archive ({quizzes.length})</span>
             <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
 
         {quizLoading ? (
-          <div className="text-center py-12 text-[#88929b]">Loading assessment catalog...</div>
+          <div className="text-center py-12 text-white/40 font-mono text-xs">Loading assessment catalog...</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {quizzes.slice(0, 3).map((quiz) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {quizzes.map((quiz) => (
               <QuizCard key={quiz.id} quiz={quiz} />
             ))}
           </div>

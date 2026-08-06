@@ -39,6 +39,17 @@ db.asyncGet = function (sql, params = []) {
   });
 };
 
+// Helper function to seed quiz if not exists
+async function seedQuiz(id, title, description, categoryId, difficulty, duration, passingScore, maxAttempts, status) {
+  const existing = await db.asyncGet('SELECT id FROM quizzes WHERE id = ?', [id]);
+  if (!existing) {
+    await db.asyncRun(`
+      INSERT INTO quizzes (id, title, description, category_id, difficulty, duration, passing_score, max_attempts, status)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `, [id, title, description, categoryId, difficulty, duration, passingScore, maxAttempts, status]);
+  }
+}
+
 // Helper function to seed question with options
 async function seedQuestion(qId, quizId, text, marks, explanation, diff, options) {
   const existing = await db.asyncGet('SELECT id FROM questions WHERE id = ?', [qId]);
@@ -167,43 +178,32 @@ async function initDatabase() {
   }
 
   // Seed Categories
-  const catExists = await db.asyncGet(`SELECT id FROM categories LIMIT 1`);
-  if (!catExists) {
-    await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
-      'cat-1', 'JavaScript', 'Core ES6+, closures, async/await, and browser runtime engines.'
-    ]);
-    await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
-      'cat-2', 'React', 'JSX, hooks, component lifecycle, virtual DOM, and state management.'
-    ]);
-    await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
-      'cat-3', 'Cyber Security', 'Cryptography, network defense, web security vulnerabilities, and protocols.'
-    ]);
-    await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
-      'cat-4', 'Python', 'Data structures, OOP, decorators, generators, and standard libraries.'
-    ]);
-    await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES (?, ?, ?)`, [
-      'cat-6', 'Database Systems', 'SQL query optimization, indexing, ACID transactions, and NoSQL.'
-    ]);
-  }
+  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+    'cat-1', 'JavaScript', 'Core ES6+, closures, async/await, and browser runtime engines.'
+  ]);
+  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+    'cat-2', 'React', 'JSX, hooks, component lifecycle, virtual DOM, and state management.'
+  ]);
+  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+    'cat-3', 'Cyber Security', 'Cryptography, network defense, web security vulnerabilities, and protocols.'
+  ]);
+  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+    'cat-4', 'Python', 'Data structures, OOP, decorators, generators, and standard libraries.'
+  ]);
+  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+    'cat-5', 'Computer Networks', 'OSI model, TCP/IP, DNS, routing algorithms, and socket programming.'
+  ]);
+  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+    'cat-6', 'Database Systems', 'SQL query optimization, indexing, ACID transactions, and NoSQL.'
+  ]);
 
-  // Seed Quizzes
-  const quizExists = await db.asyncGet(`SELECT id FROM quizzes LIMIT 1`);
-  if (!quizExists) {
-    await db.asyncRun(`
-      INSERT INTO quizzes (id, title, description, category_id, difficulty, duration, passing_score, max_attempts, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [
-      'quiz-js-101',
-      'JavaScript Fundamentals',
-      'Master core JavaScript concepts including data types, closures, event loop, promises, and ES6 features.',
-      'cat-1',
-      'Intermediate',
-      15,
-      60,
-      3,
-      'Published'
-    ]);
-  }
+  // Seed All 6 Quizzes
+  await seedQuiz('quiz-js-101', 'JavaScript Fundamentals', 'Master core JavaScript concepts including data types, closures, event loop, promises, and ES6 features.', 'cat-1', 'Intermediate', 15, 60, 3, 'Published');
+  await seedQuiz('quiz-react-201', 'Quantum React & State Protocols', 'Deep dive into React 19 concurrent rendering, custom hooks optimization, state boundary isolation, and Server Components.', 'cat-2', 'Advanced', 20, 70, 2, 'Published');
+  await seedQuiz('quiz-sec-301', 'Cypher Fundamentals & Cryptography', 'Basic decryption methodologies, asymmetric encryption, public key infrastructure, and secure communication protocols.', 'cat-3', 'Beginner', 15, 60, 5, 'Published');
+  await seedQuiz('quiz-py-101', 'Python Core & Neural Constructs', 'Analyze structural compositions of Python memory management, list comprehensions, decorators, and async generators.', 'cat-4', 'Intermediate', 30, 65, 3, 'Published');
+  await seedQuiz('quiz-net-201', 'Computer Networks & Socket Protocols', 'OSI 7-layer architecture, TCP 3-way handshake, IP subnetting, DNS resolution flow, and TLS handshake.', 'cat-5', 'Intermediate', 20, 65, 3, 'Published');
+  await seedQuiz('quiz-db-201', 'Database Systems & SQL Telemetry', 'Relational algebra, B-Tree indexes, transaction isolation levels, WAL logs, and query execution plans.', 'cat-6', 'Intermediate', 25, 60, 2, 'Published');
 
   // Seed 10 Questions for quiz-js-101
   await seedQuestion('q-js-1', 'quiz-js-101', 'Which method converts a JSON string into a JavaScript object?', 2, 'JSON.parse() parses a JSON string.', 'Easy', [
@@ -274,6 +274,22 @@ async function initDatabase() {
     { id: 'opt-38', text: 'A Promise', isCorrect: true },
     { id: 'opt-39', text: 'An Event Listener', isCorrect: false },
     { id: 'opt-40', text: 'A Generator', isCorrect: false }
+  ]);
+
+  // Seed Questions for React quiz
+  await seedQuestion('q-react-1', 'quiz-react-201', 'What hook is recommended for side effects such as data fetching and DOM subscriptions?', 2, 'useEffect handles side effects in functional components.', 'Medium', [
+    { id: 'opt-r1', text: 'useState', isCorrect: false },
+    { id: 'opt-r2', text: 'useEffect', isCorrect: true },
+    { id: 'opt-r3', text: 'useContext', isCorrect: false },
+    { id: 'opt-r4', text: 'useReducer', isCorrect: false }
+  ]);
+
+  // Seed Questions for Networks quiz
+  await seedQuestion('q-net-1', 'quiz-net-201', 'Which layer of the OSI model is responsible for routing IP packets across networks?', 2, 'The Network Layer (Layer 3) handles IP packet routing.', 'Intermediate', [
+    { id: 'opt-n1', text: 'Data Link Layer', isCorrect: false },
+    { id: 'opt-n2', text: 'Network Layer (Layer 3)', isCorrect: true },
+    { id: 'opt-n3', text: 'Transport Layer', isCorrect: false },
+    { id: 'opt-n4', text: 'Session Layer', isCorrect: false }
   ]);
 }
 

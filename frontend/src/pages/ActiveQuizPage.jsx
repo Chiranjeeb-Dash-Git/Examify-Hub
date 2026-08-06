@@ -110,15 +110,17 @@ export const ActiveQuizPage = () => {
 
           {/* Options Grid */}
           <div className="space-y-3">
-            {currentQuestion.options.map((option, idx) => {
-              const isSelected = userAnswers[currentQuestion.id] === option.id;
+            {(currentQuestion.options || []).map((option, idx) => {
+              const optId = option.id || `opt-${currentQuestion.id}-${idx + 1}`;
+              const isSelected = userAnswers[currentQuestion.id] === optId || userAnswers[currentQuestion.id] === option.text;
               const optionLetter = String.fromCharCode(65 + idx); // A, B, C, D
 
               return (
                 <button
-                  key={option.id}
-                  onClick={() => selectAnswer(currentQuestion.id, option.id)}
-                  className={`w-full p-4 rounded-2xl text-left border flex items-center gap-4 transition-all duration-200 ${
+                  key={optId || idx}
+                  type="button"
+                  onClick={() => selectAnswer(currentQuestion.id, optId)}
+                  className={`w-full p-4 rounded-2xl text-left border flex items-center gap-4 transition-all duration-200 cursor-pointer ${
                     isSelected
                       ? 'bg-white/15 border-white text-white shadow-xl shadow-white/5'
                       : 'bg-[#050505] border-white/10 text-white/80 hover:bg-white/5 hover:border-white/20'
@@ -133,7 +135,7 @@ export const ActiveQuizPage = () => {
                   >
                     {optionLetter}
                   </div>
-                  <span className="text-sm font-medium leading-relaxed">{option.text}</span>
+                  <span className="text-sm font-medium leading-relaxed">{option.text || option.option_text}</span>
                 </button>
               );
             })}

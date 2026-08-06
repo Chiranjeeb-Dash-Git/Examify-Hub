@@ -173,25 +173,39 @@ export const api = {
   // Questions
   getQuestionsForQuiz: async (quizId) => {
     const questions = getStorage('questions', INITIAL_QUESTIONS);
-    return questions.filter(q => q.quizId === quizId);
+    const quizQuestions = questions.filter(q => q.quizId === quizId);
+    return quizQuestions.map(q => ({
+      ...q,
+      options: (q.options || []).map((opt, idx) => ({
+        ...opt,
+        id: opt.id || `opt-${q.id}-${idx + 1}`,
+        text: opt.text || opt.option_text || ''
+      }))
+    }));
   },
 
   saveQuestion: async (questionData) => {
     const questions = getStorage('questions', INITIAL_QUESTIONS);
-    let updatedQuestion;
+    const qId = questionData.id || `q-${Date.now()}`;
+    const formattedOptions = (questionData.options || []).map((opt, idx) => ({
+      id: opt.id || `opt-${qId}-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
+      text: opt.text || opt.option_text || '',
+      isCorrect: !!opt.isCorrect
+    }));
+
+    const newQuestion = {
+      ...questionData,
+      id: qId,
+      options: formattedOptions
+    };
 
     if (questionData.id) {
       const idx = questions.findIndex(q => q.id === questionData.id);
       if (idx !== -1) {
-        questions[idx] = { ...questions[idx], ...questionData };
-        updatedQuestion = questions[idx];
+        questions[idx] = newQuestion;
       }
     } else {
-      updatedQuestion = {
-        id: `q-${Date.now()}`,
-        ...questionData
-      };
-      questions.push(updatedQuestion);
+      questions.push(newQuestion);
     }
     setStorage('questions', questions);
 
@@ -204,7 +218,7 @@ export const api = {
       setStorage('quizzes', quizzes);
     }
 
-    return updatedQuestion;
+    return newQuestion;
   },
 
   deleteQuestion: async (questionId, quizId) => {
@@ -231,7 +245,16 @@ export const api = {
     const users = getStorage('users', INITIAL_USERS);
 
     const quiz = quizzes.find(q => q.id === quizId);
-    const quizQuestions = questions.filter(q => q.quizId === quizId);
+    const rawQuestions = questions.filter(q => q.quizId === quizId);
+    const quizQuestions = rawQuestions.map(q => ({
+      ...q,
+      options: (q.options || []).map((opt, idx) => ({
+        ...opt,
+        id: opt.id || `opt-${q.id}-${idx + 1}`,
+        text: opt.text || opt.option_text || ''
+      }))
+    }));
+
     const user = users.find(u => u.id === userId);
 
     let correctCount = 0;
@@ -253,7 +276,7 @@ export const api = {
       }
 
       const correctOpt = q.options.find(o => o.isCorrect);
-      const isCorrect = correctOpt && correctOpt.id === userSelId;
+      const isCorrect = correctOpt && (correctOpt.id === userSelId || correctOpt.text === userSelId);
       if (isCorrect) {
         correctCount++;
         obtainedMarks += q.marks || 2;

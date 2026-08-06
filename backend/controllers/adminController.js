@@ -135,3 +135,20 @@ exports.explainAnswerAi = async (req, res) => {
     res.status(500).json({ message: 'AI explanation failed', error: err.message });
   }
 };
+
+/**
+ * PDF Question Paper Scanner & AI Digitizer Endpoint
+ */
+exports.parsePdfQuestionPaper = async (req, res) => {
+  try {
+    const { paperText } = req.body;
+    if (!paperText) {
+      return res.status(400).json({ message: 'Question paper text is required for digitizing.' });
+    }
+    const result = await geminiService.parsePdfQuestionPaper(paperText);
+    res.json({ success: true, ...result });
+  } catch (err) {
+    res.status(500).json({ message: 'PDF parsing failed', error: err.message });
+  }
+};
+

@@ -44,8 +44,9 @@ router.get('/admin/users', verifyAdmin, adminController.getUsers);
 router.patch('/admin/users/:userId/status', verifyAdmin, adminController.toggleUserStatus);
 router.delete('/admin/users/:userId', verifyAdmin, adminController.deleteUser);
 
-// Gemini AI Routes (Admin Question Generation & Candidate Evaluation)
+// Gemini AI Routes (Admin Question Generation & Candidate Evaluation & PDF Scanner)
 router.post('/admin/ai/generate-questions', verifyAdmin, adminController.generateAiQuestions);
+router.post('/admin/ai/parse-pdf-paper', verifyAdmin, adminController.parsePdfQuestionPaper);
 router.post('/ai/explain-answer', adminController.explainAnswerAi);
 
 // Leaderboard Route

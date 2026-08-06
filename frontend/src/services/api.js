@@ -117,11 +117,27 @@ export const api = {
 
   // Quizzes
   getQuizzes: async () => {
-    return getStorage('quizzes', INITIAL_QUIZZES);
+    const localQuizzes = getStorage('quizzes', INITIAL_QUIZZES);
+    try {
+      const response = await fetch('/api/quizzes');
+      if (response.ok) {
+        const serverQuizzes = await response.json();
+        const map = new Map();
+        [...INITIAL_QUIZZES, ...localQuizzes, ...serverQuizzes].forEach(q => {
+          map.set(q.id, q);
+        });
+        const merged = Array.from(map.values());
+        setStorage('quizzes', merged);
+        return merged;
+      }
+    } catch (e) {
+      console.warn('Using local storage quizzes:', e.message);
+    }
+    return localQuizzes;
   },
 
   getQuizById: async (id) => {
-    const quizzes = getStorage('quizzes', INITIAL_QUIZZES);
+    const quizzes = await api.getQuizzes();
     const quiz = quizzes.find(q => q.id === id);
     if (!quiz) throw new Error('Quiz not found');
     return quiz;
@@ -132,6 +148,7 @@ export const api = {
     const categories = getStorage('categories', INITIAL_CATEGORIES);
     const cat = categories.find(c => c.id === quizData.categoryId);
 
+    let savedQuiz;
     if (quizData.id) {
       // Edit existing
       const idx = quizzes.findIndex(q => q.id === quizData.id);
@@ -141,26 +158,43 @@ export const api = {
           ...quizData,
           categoryName: cat ? cat.name : quizzes[idx].categoryName
         };
-        setStorage('quizzes', quizzes);
-        return quizzes[idx];
+        savedQuiz = quizzes[idx];
       }
     }
 
-    // Create new
-    const newQuiz = {
-      id: `quiz-${Date.now()}`,
-      ...quizData,
-      categoryName: cat ? cat.name : 'General',
-      status: quizData.status || 'Published',
-      createdAt: new Date().toISOString().split('T')[0],
-      thumbnail: quizData.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80',
-      questionsCount: 0,
-      attemptsCount: 0,
-      avgScore: 0
-    };
-    quizzes.push(newQuiz);
+    if (!savedQuiz) {
+      // Create new
+      savedQuiz = {
+        id: quizData.id || `quiz-${Date.now()}`,
+        ...quizData,
+        categoryName: cat ? cat.name : (quizData.categoryName || 'General'),
+        status: quizData.status || 'Published',
+        createdAt: new Date().toISOString().split('T')[0],
+        thumbnail: quizData.thumbnail || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80',
+        questionsCount: quizData.questionsCount || 0,
+        attemptsCount: 0,
+        avgScore: 0
+      };
+      quizzes.push(savedQuiz);
+    }
+
     setStorage('quizzes', quizzes);
-    return newQuiz;
+
+    // Sync with backend API
+    try {
+      await fetch('/api/quizzes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('examify_hub_token')}`
+        },
+        body: JSON.stringify(savedQuiz)
+      });
+    } catch (e) {
+      console.warn('Backend quiz sync warning:', e.message);
+    }
+
+    return savedQuiz;
   },
 
   deleteQuiz: async (id) => {

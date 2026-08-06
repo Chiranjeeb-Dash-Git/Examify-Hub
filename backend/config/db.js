@@ -196,14 +196,33 @@ async function initDatabase() {
   await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
     'cat-6', 'Database Systems', 'SQL query optimization, indexing, ACID transactions, and NoSQL.'
   ]);
+  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+    'cat-7', 'Next.js', 'App Router, React Server Components, SSG, SSR, ISR, and API route handlers.'
+  ]);
 
-  // Seed All 6 Quizzes
+  // Seed All 7 Quizzes
   await seedQuiz('quiz-js-101', 'JavaScript Fundamentals', 'Master core JavaScript concepts including data types, closures, event loop, promises, and ES6 features.', 'cat-1', 'Intermediate', 15, 60, 3, 'Published');
   await seedQuiz('quiz-react-201', 'Quantum React & State Protocols', 'Deep dive into React 19 concurrent rendering, custom hooks optimization, state boundary isolation, and Server Components.', 'cat-2', 'Advanced', 20, 70, 2, 'Published');
   await seedQuiz('quiz-sec-301', 'Cypher Fundamentals & Cryptography', 'Basic decryption methodologies, asymmetric encryption, public key infrastructure, and secure communication protocols.', 'cat-3', 'Beginner', 15, 60, 5, 'Published');
   await seedQuiz('quiz-py-101', 'Python Core & Neural Constructs', 'Analyze structural compositions of Python memory management, list comprehensions, decorators, and async generators.', 'cat-4', 'Intermediate', 30, 65, 3, 'Published');
   await seedQuiz('quiz-net-201', 'Computer Networks & Socket Protocols', 'OSI 7-layer architecture, TCP 3-way handshake, IP subnetting, DNS resolution flow, and TLS handshake.', 'cat-5', 'Intermediate', 20, 65, 3, 'Published');
   await seedQuiz('quiz-db-201', 'Database Systems & SQL Telemetry', 'Relational algebra, B-Tree indexes, transaction isolation levels, WAL logs, and query execution plans.', 'cat-6', 'Intermediate', 25, 60, 2, 'Published');
+  await seedQuiz('quiz-next-301', 'Next.js App Router & SSR Protocols', 'Master Next.js App Router, React Server Components, server actions, dynamic routing, and caching strategies.', 'cat-7', 'Intermediate', 20, 60, 3, 'Published');
+
+  // Seed Questions for Next.js quiz
+  await seedQuestion('q-next-1', 'quiz-next-301', 'In Next.js App Router, which file convention defines a UI unique to a route segment?', 2, 'page.js defines UI unique to a route segment in the App Router.', 'Easy', [
+    { id: 'opt-nx1', text: 'index.js', isCorrect: false },
+    { id: 'opt-nx2', text: 'page.js', isCorrect: true },
+    { id: 'opt-nx3', text: 'route.js', isCorrect: false },
+    { id: 'opt-nx4', text: 'layout.js', isCorrect: false }
+  ]);
+
+  await seedQuestion('q-next-2', 'quiz-next-301', 'Which directive must be declared at the top of a file to create a Client Component in Next.js App Router?', 2, '"use client" marks a component for client-side execution and interactivity.', 'Easy', [
+    { id: 'opt-nx5', text: '"use client"', isCorrect: true },
+    { id: 'opt-nx6', text: '"use server"', isCorrect: false },
+    { id: 'opt-nx7', text: '"use react"', isCorrect: false },
+    { id: 'opt-nx8', text: '"use browser"', isCorrect: false }
+  ]);
 
   // Seed 10 Questions for quiz-js-101
   await seedQuestion('q-js-1', 'quiz-js-101', 'Which method converts a JSON string into a JavaScript object?', 2, 'JSON.parse() parses a JSON string.', 'Easy', [

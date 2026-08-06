@@ -6,7 +6,8 @@ export const INITIAL_CATEGORIES = [
   { id: 'cat-3', name: 'Cyber Security', description: 'Cryptography, network defense, web security vulnerabilities, and protocols.', count: 10 },
   { id: 'cat-4', name: 'Python', description: 'Data structures, OOP, decorators, generators, and standard libraries.', count: 10 },
   { id: 'cat-5', name: 'Computer Networks', description: 'OSI model, TCP/IP, DNS, routing algorithms, and socket programming.', count: 10 },
-  { id: 'cat-6', name: 'Database Systems', description: 'SQL query optimization, indexing, ACID transactions, and NoSQL.', count: 10 }
+  { id: 'cat-6', name: 'Database Systems', description: 'SQL query optimization, indexing, ACID transactions, and NoSQL.', count: 10 },
+  { id: 'cat-7', name: 'Next.js', description: 'App Router, React Server Components, SSG, SSR, ISR, and API route handlers.', count: 10 }
 ];
 
 export const INITIAL_USERS = [
@@ -149,6 +150,23 @@ export const INITIAL_QUIZZES = [
     questionsCount: 10,
     attemptsCount: 195,
     avgScore: 72
+  },
+  {
+    id: 'quiz-next-301',
+    title: 'Next.js App Router & SSR Protocols',
+    description: 'Master Next.js App Router, React Server Components, server actions, dynamic routing, and caching strategies.',
+    categoryId: 'cat-7',
+    categoryName: 'Next.js',
+    difficulty: 'Intermediate',
+    duration: 20,
+    passingScore: 60,
+    maxAttempts: 3,
+    status: 'Published',
+    createdAt: '2026-03-20',
+    thumbnail: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80',
+    questionsCount: 10,
+    attemptsCount: 310,
+    avgScore: 84
   }
 ];
 

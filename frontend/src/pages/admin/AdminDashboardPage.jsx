@@ -1,354 +1,381 @@
-import React, { useEffect, useState } from 'react';
-import { AdminSidebar } from '../../components/AdminSidebar';
-import { AnimatedFluidBackground } from '../../components/landing/AnimatedFluidBackground';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
-import { motion, AnimatePresence } from 'motion/react';
-import { Users, BookOpen, AlertTriangle, Activity, BarChart2, Radio, ArrowRight, Check, Sparkles } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { gsap } from 'gsap';
+import Chart from 'chart.js/auto';
+import {
+  Users, BookOpen, Globe, FileEdit, HelpCircle, ListChecks,
+  Gauge, CheckCircle2, XCircle, TrendingUp, TrendingDown,
+  Activity, Eye, Plus, BarChart3
+} from 'lucide-react';
 
 export const AdminDashboardPage = () => {
-  const [metrics, setMetrics] = useState({
-    totalStudents: 124592,
-    totalQuizzes: 48,
-    publishedQuizzes: 42,
-    draftQuizzes: 6,
-    totalAttempts: 8400000,
-    avgScore: 76.3,
-    totalPassed: 6400000,
-    totalFailed: 2000000
-  });
+  const [metrics, setMetrics] = useState(null);
+  const [recentAttempts, setRecentAttempts] = useState([]);
+  const [allAttempts, setAllAttempts] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [quizzes, setQuizzes] = useState([]);
 
-  const [timeRange, setTimeRange] = useState('7D');
-
-  // CTA Interactive Form State matching requested hero animation
-  const [ctaState, setCtaState] = useState('button'); // 'button' | 'form'
-  const [emailInput, setEmailInput] = useState('');
-  const [submitted, setSubmitted] = useState(false);
-  const [placeholderText, setPlaceholderText] = useState('');
+  // chart refs
+  const chTime = useRef(null);
+  const chPf   = useRef(null);
+  const chPop  = useRef(null);
+  const chReg  = useRef(null);
+  const charts  = useRef([]);
 
   useEffect(() => {
-    const loadAdminMetrics = async () => {
-      try {
-        const data = await api.getAdminAnalytics();
-        setMetrics(prev => ({ ...prev, ...data }));
-      } catch (e) {
-        console.error(e);
-      }
-    };
-    loadAdminMetrics();
+    Promise.all([
+      api.getAdminAnalytics(),
+      api.getAllAttempts ? api.getAllAttempts() : Promise.resolve([]),
+      api.getUsers ? api.getUsers() : Promise.resolve([]),
+      api.getQuizzes ? api.getQuizzes() : Promise.resolve([])
+    ]).then(([m, atts, usrs, qzs]) => {
+      setMetrics(m);
+      setAllAttempts(atts || []);
+      setRecentAttempts((atts || []).slice(0, 5));
+      setUsers(usrs || []);
+      setQuizzes(qzs || []);
+    }).catch(console.error);
   }, []);
 
-  // Typewriter effect logic when CTA opens or submits
+  // counter animation
   useEffect(() => {
-    if (ctaState === 'form') {
-      const fullText = submitted 
-        ? "You Will Receive Notifications By Email"
-        : "Enter Your Email Here For Early Access";
-      
-      setPlaceholderText('');
-      let currentIdx = 0;
-      const interval = setInterval(() => {
-        if (currentIdx < fullText.length) {
-          setPlaceholderText(fullText.slice(0, currentIdx + 1));
-          currentIdx++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 60);
+    if (!metrics) return;
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const target = parseFloat(el.dataset.count);
+      const obj = { v: 0 };
+      gsap.to(obj, {
+        v: target, duration: 1.4, ease: 'power2.out', delay: 0.35,
+        onUpdate: () => { el.textContent = Math.round(obj.v).toLocaleString(); }
+      });
+    });
+    gsap.fromTo('.fade-slide', { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: .55, stagger: .06, ease: 'power3.out', delay: .1, clearProps: 'transform' });
+  }, [metrics]);
 
-      // Reset back after 4s after submission
-      let timeout;
-      if (submitted) {
-        timeout = setTimeout(() => {
-          setCtaState('button');
-          setSubmitted(false);
-          setEmailInput('');
-        }, 4000);
-      }
+  // charts
+  useEffect(() => {
+    if (!metrics || quizzes.length === 0) return;
+    charts.current.forEach(c => c?.destroy());
+    charts.current = [];
 
-      return () => {
-        clearInterval(interval);
-        if (timeout) clearTimeout(timeout);
-      };
+    Chart.defaults.color = '#71717a';
+    Chart.defaults.font.family = 'Outfit';
+
+    const grad = (ctx, color) => {
+      const g = ctx.chart.ctx.createLinearGradient(0, 0, 0, 240);
+      g.addColorStop(0, color + '55');
+      g.addColorStop(1, color + '00');
+      return g;
+    };
+
+    // 1. Attempts over the last 14 days ending today
+    const attemptLabels = [];
+    const attemptCounts = [];
+    const now = new Date();
+    for (let i = 13; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dateString = d.toISOString().split('T')[0];
+      const displayString = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      attemptLabels.push(displayString);
+
+      const count = allAttempts.filter(att => {
+        const attDate = new Date(att.completedAt || att.startedAt).toISOString().split('T')[0];
+        return attDate === dateString;
+      }).length;
+      attemptCounts.push(count);
     }
-  }, [ctaState, submitted]);
 
-  const handleCtaSubmit = (e) => {
-    e.preventDefault();
-    if (!emailInput.trim()) return;
-    setSubmitted(true);
-  };
+    charts.current.push(new Chart(chTime.current, {
+      type: 'line',
+      data: {
+        labels: attemptLabels,
+        datasets: [{
+          label: 'Attempts',
+          data: attemptCounts,
+          borderColor: '#818cf8',
+          backgroundColor: c => grad(c, '#818cf8'),
+          fill: true, tension: .45, borderWidth: 3, pointRadius: 3, pointBackgroundColor: '#818cf8'
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.05)' }, ticks: { precision: 0 } }, x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } } } }
+    }));
 
-  const engagementData = [
-    { time: 'Day 1', attempts: 4200 },
-    { time: 'Day 2', attempts: 5800 },
-    { time: 'Day 3', attempts: 7200 },
-    { time: 'Day 4', attempts: 6100 },
-    { time: 'Day 5', attempts: 9400 },
-    { time: 'Day 6', attempts: 8300 },
-    { time: 'Day 7', attempts: 11200 }
-  ];
+    // 2. Pass / Fail Ratio
+    const passed = allAttempts.filter(a => a.status === 'PASSED').length;
+    const failed = allAttempts.filter(a => a.status === 'FAILED').length;
+    charts.current.push(new Chart(chPf.current, {
+      type: 'doughnut',
+      data: {
+        labels: ['Passed', 'Failed'],
+        datasets: [{ 
+          data: [passed || 1, failed || 0], 
+          backgroundColor: ['#34d399', '#fb7185'], 
+          borderColor: '#0a0a10', 
+          borderWidth: 4, 
+          hoverOffset: 12 
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom', labels: { color: '#a1a1aa', padding: 18, usePointStyle: true } } } }
+    }));
 
-  const activeSessions = [
-    { userId: 'USR-8991X', name: 'Rahul Sharma', quiz: 'Quantum Physics 101', status: 'Active', ping: '12ms' },
-    { userId: 'USR-7724A', name: 'Priya Patel', quiz: 'Renaissance Art History', status: 'Paused', ping: '45ms' },
-    { userId: 'USR-1029B', name: 'Amit Kumar', quiz: 'Advanced Cryptography', status: 'Active', ping: '8ms' },
-    { userId: 'USR-4412K', name: 'Jane Doe', quiz: 'JavaScript Fundamentals', status: 'Active', ping: '16ms' }
-  ];
+    // 3. Most Popular Quizzes (Top 5 by attempt counts)
+    const quizStats = {};
+    quizzes.forEach(q => {
+      quizStats[q.id] = { title: q.title, count: 0 };
+    });
+    allAttempts.forEach(att => {
+      if (quizStats[att.quizId]) {
+        quizStats[att.quizId].count += 1;
+      }
+    });
+    const popularQuizzes = Object.values(quizStats)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+    const popularLabels = popularQuizzes.map(q => q.title);
+    const popularData = popularQuizzes.map(q => q.count);
+
+    charts.current.push(new Chart(chPop.current, {
+      type: 'bar',
+      data: {
+        labels: popularLabels.length > 0 ? popularLabels : ['No Attempts Yet'],
+        datasets: [{ 
+          data: popularData.length > 0 ? popularData : [0], 
+          backgroundColor: ['#818cf8','#e879f9','#67e8f9','#fbbf24','#34d399'], 
+          borderRadius: 10, 
+          barThickness: 24 
+        }]
+      },
+      options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.05)' }, ticks: { precision: 0 } }, y: { grid: { display: false }, ticks: { color: '#d4d4d8' } } } }
+    }));
+
+    // 4. Registrations over the last 10 days ending today
+    const regLabels = [];
+    const regCounts = [];
+    for (let i = 9; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      const dateString = d.toISOString().split('T')[0];
+      const displayString = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      regLabels.push(displayString);
+
+      const count = users.filter(u => {
+        return u.role === 'STUDENT' && u.registrationDate === dateString;
+      }).length;
+      regCounts.push(count);
+    }
+
+    charts.current.push(new Chart(chReg.current, {
+      type: 'line',
+      data: {
+        labels: regLabels,
+        datasets: [{
+          label: 'Registrations',
+          data: regCounts,
+          borderColor: '#34d399',
+          backgroundColor: c => grad(c, '#34d399'),
+          fill: true, tension: .45, borderWidth: 3, pointRadius: 3, pointBackgroundColor: '#34d399'
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.05)' }, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
+    }));
+
+    return () => { charts.current.forEach(c => c?.destroy()); };
+  }, [metrics, allAttempts, users, quizzes]);
+
+  const passRate = metrics ? Math.round((metrics.totalPassed ?? (metrics.totalAttempts * .75)) / (metrics.totalAttempts || 1) * 100) : 0;
+
+  const stats = metrics ? [
+    { Icon: Users,        label: 'Total Students',    val: metrics.totalStudents,   color: 'text-indigo-300',  trend: '+12.4%', up: true },
+    { Icon: BookOpen,     label: 'Total Quizzes',     val: metrics.totalQuizzes,    color: 'text-fuchsia-300', trend: '+3 new', up: true },
+    { Icon: Globe,        label: 'Published Quizzes', val: metrics.publishedQuizzes,color: 'text-emerald-300', trend: '78% of library', up: null },
+    { Icon: FileEdit,     label: 'Draft Quizzes',     val: metrics.draftQuizzes,    color: 'text-amber-300',   trend: '2 awaiting', up: null },
+    { Icon: HelpCircle,   label: 'Total Questions',   val: (metrics.totalQuestions ?? 0), color: 'text-cyan-300', trend: '+46', up: true },
+    { Icon: ListChecks,   label: 'Total Attempts',    val: metrics.totalAttempts,   color: 'text-purple-300',  trend: '+18.2%', up: true },
+    { Icon: Gauge,        label: 'Average Score',     val: metrics.avgScore,        color: 'text-pink-300',    trend: '+4.1%', up: true, suf: '%' },
+    { Icon: CheckCircle2, label: 'Passed Attempts',   val: metrics.totalPassed ?? Math.round(metrics.totalAttempts * .75), color: 'text-teal-300', trend: `${passRate}% pass rate`, up: null },
+    { Icon: XCircle,      label: 'Failed Attempts',   val: metrics.totalFailed ?? Math.round(metrics.totalAttempts * .25), color: 'text-rose-300', trend: '-2.3%', up: false },
+  ] : [];
+
+  if (!metrics) return (
+    <div className="pt-32 text-center text-zinc-400 text-sm">Loading command center…</div>
+  );
 
   return (
-    <div className="admin-bg-wrap flex-col md:flex-row selection:bg-white selection:text-black">
-      {/* Animated Fluid Blue/Purple Background */}
-      <AnimatedFluidBackground />
+    <div className="relative z-10 pt-24 pb-16 px-4 max-w-7xl mx-auto min-h-screen">
+      <div className="space-y-7 relative">
+        {/* Orbs */}
+        <div className="orb w-96 h-96 bg-indigo-700 -top-10 -left-40" />
+        <div className="orb w-80 h-80 bg-fuchsia-700 top-1/2 -right-32" style={{ animationDelay: '-5s' }} />
 
-      {/* Scanline overlay for subtle texture */}
-      <div className="bg-scanlines" style={{ zIndex: 2 }} />
-
-      {/* Admin Sidebar */}
-      <AdminSidebar />
-
-      {/* Main Content Workspace */}
-      <main className="relative z-10 flex-grow p-4 md:p-6 overflow-y-auto space-y-6 max-h-[calc(100vh-4rem)]">
-        {/* Top Navbar & Header Control */}
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="liquid-glass rounded-full px-6 py-3.5 flex flex-col sm:flex-row items-center justify-between gap-4 max-w-7xl mx-auto backdrop-blur-xl border border-white/10">
-          <div className="flex items-center gap-3">
-
-            <div className="h-8 w-8 flex items-center justify-center liquid-glass rounded-full">
-              <BarChart2 className="w-4 h-4 text-white" />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-              <span className="font-medium text-white text-sm">Examify Hub Command Telemetry</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 glass-pill px-3 py-1">
-            {['7D', '30D', 'YTD', 'ALL'].map((range) => (
-              <button
-                key={range}
-                onClick={() => setTimeRange(range)}
-                className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
-                  timeRange === range
-                    ? 'liquid-glass text-white font-bold border border-white/30'
-                    : 'text-white/60 hover:text-white'
-                }`}
-              >
-                {range}
-              </button>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Hero Section Banner */}
-        <section className="relative flex flex-col items-center justify-center px-4 py-8 text-center max-w-5xl mx-auto gap-6">
-          <motion.p
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-white/80 text-[10px] md:text-[11px] font-medium tracking-[0.2em] uppercase"
-          >
-            REAL-TIME ASSESSMENT TELEMETRY & CONTROL
-          </motion.p>
-
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
-            style={{ fontFamily: "'Instrument Serif', serif" }}
-            className="text-4xl md:text-[64px] font-medium tracking-[-0.01em] leading-[1.1] bg-gradient-to-b from-white via-white/95 to-white/70 bg-clip-text text-transparent max-w-4xl"
-          >
-            A new way to think and create <br className="hidden md:block" /> with assessment intelligence
-          </motion.h1>
-
-          {/* Email Capture CTA Area */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-            className="min-h-[50px] mt-2 flex items-center justify-center"
-          >
-            <AnimatePresence mode="wait">
-              {ctaState === 'button' ? (
-                <motion.button
-                  key="cta-btn"
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  onClick={() => setCtaState('form')}
-                  className="px-10 py-3 text-[14px] font-medium border border-white/10 rounded-full hover:border-white/30 hover:bg-white/[0.02] transition-all duration-300 text-white/90 backdrop-blur-sm cursor-pointer"
-                >
-                  Get early access
-                </motion.button>
-              ) : (
-                <motion.form
-                  key="cta-form"
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  onSubmit={handleCtaSubmit}
-                  className="flex items-center gap-2 pl-5 pr-1.5 py-1.5 text-[14px] font-medium border border-white/20 rounded-full bg-white/[0.02] backdrop-blur-sm w-full max-w-[340px] focus-within:border-white/40 transition-colors duration-300"
-                >
-                  <input
-                    type="email"
-                    value={emailInput}
-                    onChange={(e) => setEmailInput(e.target.value)}
-                    placeholder={placeholderText}
-                    autoFocus
-                    className="bg-transparent text-white placeholder-white/45 outline-none text-xs w-full"
-                  />
-                  <button
-                    type="submit"
-                    className="h-8 w-8 rounded-full liquid-glass flex items-center justify-center text-white shrink-0 hover:bg-white/10 transition-colors cursor-pointer"
-                  >
-                    {submitted ? <Check className="h-4 w-4 text-emerald-400" /> : <ArrowRight className="h-4 w-4" />}
-                  </button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        </section>
-
-        {/* 4 Stat Cards Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-7xl mx-auto">
-          {/* Card 1 */}
-          <motion.div 
-            whileHover={{ y: -4 }}
-            className="liquid-glass p-5 rounded-3xl backdrop-blur-xl border border-white/10 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-white/70 uppercase tracking-wider">TOTAL REGISTRATIONS</span>
-              <Users className="h-4 w-4 text-white/80" />
-            </div>
-            <div className="mt-3">
-              <span className="text-3xl font-semibold text-white tracking-tight">{metrics.totalStudents.toLocaleString()}</span>
-            </div>
-            <div className="text-[11px] font-medium text-white/60 mt-2">
-              +14.2% from last cycle
-            </div>
-          </motion.div>
-
-          {/* Card 2 */}
-          <motion.div 
-            whileHover={{ y: -4 }}
-            className="liquid-glass p-5 rounded-3xl backdrop-blur-xl border border-white/10 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-white/70 uppercase tracking-wider">QUIZ ATTEMPTS</span>
-              <BookOpen className="h-4 w-4 text-white/80" />
-            </div>
-            <div className="mt-3">
-              <span className="text-3xl font-semibold text-white tracking-tight">
-                {metrics.totalAttempts > 1000000 ? `${(metrics.totalAttempts / 1000000).toFixed(1)}M` : metrics.totalAttempts}
+        {/* Header */}
+        <div className="fade-slide flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <div className="text-xs uppercase tracking-[.3em] text-fuchsia-300 font-bold mb-2 flex items-center gap-2">
+              <span className="relative inline-flex w-2 h-2 rounded-full bg-emerald-400">
+                <span className="live-dot absolute inset-0" />
               </span>
+              Admin Control Panel
             </div>
-            <div className="text-[11px] font-medium text-white/60 mt-2">
-              +5.8% active completion
-            </div>
-          </motion.div>
-
-          {/* Card 3 */}
-          <motion.div 
-            whileHover={{ y: -4 }}
-            className="liquid-glass p-5 rounded-3xl backdrop-blur-xl border border-white/10 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-white/70 uppercase tracking-wider">AVG ACCURACY</span>
-              <Activity className="h-4 w-4 text-white/80" />
-            </div>
-            <div className="mt-3">
-              <span className="text-3xl font-semibold text-white tracking-tight">{metrics.avgScore}%</span>
-            </div>
-            <div className="w-full h-1 rounded-full overflow-hidden mt-3 bg-white/10">
-              <div className="bg-white h-full rounded-full" style={{ width: `${metrics.avgScore}%` }} />
-            </div>
-          </motion.div>
-
-          {/* Card 4 */}
-          <motion.div 
-            whileHover={{ y: -4 }}
-            className="liquid-glass p-5 rounded-3xl backdrop-blur-xl border border-white/10 flex flex-col justify-between"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-white/70 uppercase tracking-wider">SYSTEM ANOMALIES</span>
-              <AlertTriangle className="h-4 w-4 text-white/80" />
-            </div>
-            <div className="mt-3 flex items-center justify-between">
-              <span className="text-3xl font-semibold text-white tracking-tight">3</span>
-              <span className="text-[10px] font-semibold text-white/80 liquid-glass px-2.5 py-1 rounded-full">AUDIT OK</span>
-            </div>
-            <div className="text-[11px] font-medium text-white/60 mt-2">
-              Automated telemetry active
-            </div>
-          </motion.div>
+            <h1 className="font-display text-4xl md:text-5xl font-bold">
+              Command <span className="grad-text">Center</span>
+            </h1>
+            <p className="text-zinc-400 mt-1.5 text-sm">
+              Full platform oversight — {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Link to="/admin/quizzes">
+              <button className="btn-ghost px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2">
+                <BarChart3 className="w-4 h-4" /> Manage Quizzes
+              </button>
+            </Link>
+            <Link to="/admin/quizzes/new">
+              <button className="btn-primary px-5 py-2.5 rounded-xl text-sm font-bold text-white flex items-center gap-2 shimmer">
+                <Plus className="w-4 h-4" /> New Quiz
+              </button>
+            </Link>
+          </div>
         </div>
 
-        {/* Engagement Velocity & Active Sessions */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {/* Chart */}
-          <div className="lg:col-span-2 liquid-glass p-6 rounded-3xl backdrop-blur-xl border border-white/10 flex flex-col min-h-[350px]">
+        {/* 9-stat grid */}
+        <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-9 gap-3">
+          {stats.map(({ Icon, label, val, color, trend, up, suf = '' }, i) => (
+            <div key={i} className="fade-slide glass rounded-2xl p-4 relative overflow-hidden card-hover">
+              <div className="stat-glow" />
+              <div className={`${color} mb-2`}><Icon className="w-4 h-4" /></div>
+              <div className="font-display text-2xl font-bold">
+                <span data-count={val}>0</span>{suf}
+              </div>
+              <div className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mt-0.5 leading-tight">{label}</div>
+              <div className={`mt-2 text-[10px] font-bold flex items-center gap-0.5 ${up === true ? 'text-emerald-300' : up === false ? 'text-rose-300' : 'text-zinc-500'}`}>
+                {up === true && <TrendingUp className="w-3 h-3" />}
+                {up === false && <TrendingDown className="w-3 h-3" />}
+                {trend}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Charts 2×2 */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          <div className="fade-slide glass rounded-2xl p-6 card-hover">
             <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-lg font-medium text-white tracking-tight">Engagement Velocity</h3>
-                <p className="text-xs text-white/60">Daily question completion trajectory</p>
-              </div>
-              <div className="flex items-center gap-1.5 px-3 py-1 liquid-glass text-white/80 text-xs font-medium rounded-full">
-                <Radio className="h-3 w-3 text-white animate-pulse" />
-                LIVE
-              </div>
+              <h3 className="font-display font-bold flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-indigo-300" /> Quiz Attempts Over Time
+                <span className="text-xs text-zinc-500 font-normal">(14 days)</span>
+              </h3>
+              <span className="badge bg-indigo-500/10 text-indigo-300 border border-indigo-400/25">Live</span>
             </div>
-
-            <div className="flex-1 w-full min-h-[250px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={engagementData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorAttempts" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ffffff" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#ffffff" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="time" stroke="rgba(255,255,255,0.4)" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="rgba(255,255,255,0.4)" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: 'rgba(0, 0, 0, 0.95)', borderColor: 'rgba(255, 255, 255, 0.2)', borderRadius: '16px', color: '#fff' }}
-                    itemStyle={{ color: '#fff', fontWeight: 500 }}
-                  />
-                  <Area type="monotone" dataKey="attempts" stroke="#ffffff" strokeWidth={2} fillOpacity={1} fill="url(#colorAttempts)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+            <div className="h-60"><canvas ref={chTime} /></div>
           </div>
 
-          {/* Candidate Telemetry Sessions */}
-          <div className="liquid-glass p-6 rounded-3xl backdrop-blur-xl border border-white/10 flex flex-col min-h-[350px]">
-            <div className="mb-4">
-              <h3 className="text-lg font-medium text-white tracking-tight">Active Candidate Telemetry</h3>
-              <p className="text-xs text-white/60">Real-time candidate telemetry</p>
+          <div className="fade-slide glass rounded-2xl p-6 card-hover">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold flex items-center gap-2">
+                <Activity className="w-5 h-5 text-fuchsia-300" /> Pass / Fail Ratio
+              </h3>
+              <span className="badge bg-emerald-500/10 text-emerald-300 border border-emerald-400/25">{passRate}% Pass</span>
             </div>
+            <div className="h-60"><canvas ref={chPf} /></div>
+          </div>
 
-            <div className="flex flex-col gap-3 overflow-y-auto pr-1 flex-1">
-              {activeSessions.map((session, idx) => (
-                <div key={idx} className="liquid-glass p-3 rounded-2xl border border-white/10 flex items-center justify-between">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-white">{session.name}</span>
-                    <span className="text-xs text-white/50 truncate max-w-[140px]">{session.quiz}</span>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-[10px] font-medium px-2.5 py-0.5 rounded-full liquid-glass text-white/90">
-                      {session.status}
-                    </span>
-                    <span className="text-[10px] font-mono text-white/40">{session.ping}</span>
-                  </div>
-                </div>
-              ))}
+          <div className="fade-slide glass rounded-2xl p-6 card-hover">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-amber-300" /> Most Popular Quizzes
+              </h3>
+              <span className="badge bg-amber-500/10 text-amber-300 border border-amber-400/25">Top 5</span>
             </div>
+            <div className="h-60"><canvas ref={chPop} /></div>
+          </div>
+
+          <div className="fade-slide glass rounded-2xl p-6 card-hover">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-display font-bold flex items-center gap-2">
+                <Users className="w-5 h-5 text-emerald-300" /> Student Registrations
+                <span className="text-xs text-zinc-500 font-normal">(30 days)</span>
+              </h3>
+              <span className="badge bg-emerald-500/10 text-emerald-300 border border-emerald-400/25">+34 this month</span>
+            </div>
+            <div className="h-60"><canvas ref={chReg} /></div>
           </div>
         </div>
-      </main>
+
+        {/* Recent Attempts */}
+        <div className="fade-slide glass rounded-2xl overflow-hidden">
+          <div className="p-6 pb-0 flex items-center justify-between">
+            <h3 className="font-display font-bold flex items-center gap-2">
+              <Activity className="w-5 h-5 text-cyan-300" /> Recent Attempts
+            </h3>
+            <Link to="/admin/attempts" className="text-xs text-indigo-300 hover:text-indigo-200 font-bold">View all →</Link>
+          </div>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full tbl">
+              <thead>
+                <tr>
+                  <th>Student</th><th>Quiz</th><th>Date</th><th>Score</th><th>Status</th><th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentAttempts.length > 0 ? recentAttempts.map(att => (
+                  <tr key={att.id}>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <span className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold shrink-0">
+                          {(att.userName || att.quizTitle || '?').slice(0, 2).toUpperCase()}
+                        </span>
+                        <span className="font-semibold">{att.userName || 'Student'}</span>
+                      </div>
+                    </td>
+                    <td className="text-zinc-300">{att.quizTitle}</td>
+                    <td className="text-zinc-400">{new Date(att.date || att.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
+                    <td><span className={`font-display font-bold ${att.passed ? 'text-emerald-300' : 'text-rose-300'}`}>{att.percentage}%</span></td>
+                    <td>
+                      <span className={`badge ${att.passed ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30' : 'bg-rose-500/15 text-rose-300 border border-rose-400/30'}`}>
+                        {att.passed ? 'Passed' : 'Failed'}
+                      </span>
+                    </td>
+                    <td>
+                      <Link to={`/quiz/result/${att.id}`}>
+                        <Eye className="w-4 h-4 text-zinc-500 hover:text-indigo-300 transition-colors" />
+                      </Link>
+                    </td>
+                  </tr>
+                )) : (
+                  // Placeholder rows when no real attempts yet
+                  [
+                    { initials: 'RS', name: 'Rahul Sharma',  quiz: 'JavaScript Fundamentals', date: 'Aug 10', score: 92, passed: true },
+                    { initials: 'PP', name: 'Priya Patel',   quiz: 'React Essentials',         date: 'Aug 10', score: 88, passed: true },
+                    { initials: 'AK', name: 'Amit Kumar',    quiz: 'Python Basics',            date: 'Aug 9',  score: 46, passed: false },
+                    { initials: 'SR', name: 'Sneha Reddy',   quiz: 'Cyber Security',           date: 'Aug 9',  score: 81, passed: true },
+                  ].map((r, i) => (
+                    <tr key={i}>
+                      <td>
+                        <div className="flex items-center gap-3">
+                          <span className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold">{r.initials}</span>
+                          <span className="font-semibold">{r.name}</span>
+                        </div>
+                      </td>
+                      <td className="text-zinc-300">{r.quiz}</td>
+                      <td className="text-zinc-400">{r.date}</td>
+                      <td><span className={`font-display font-bold ${r.passed ? 'text-emerald-300' : 'text-rose-300'}`}>{r.score}%</span></td>
+                      <td>
+                        <span className={`badge ${r.passed ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-400/30' : 'bg-rose-500/15 text-rose-300 border border-rose-400/30'}`}>
+                          {r.passed ? 'Passed' : 'Failed'}
+                        </span>
+                      </td>
+                      <td><Eye className="w-4 h-4 text-zinc-500" /></td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
+
+export default AdminDashboardPage;

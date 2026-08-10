@@ -1,151 +1,101 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { motion } from 'motion/react';
-import { Bell, LogOut, Shield, Award, BookOpen, LayoutDashboard, PlusCircle, BarChart3, Globe } from 'lucide-react';
+import {
+  Zap, LayoutDashboard, BookOpen, FolderTree, Users,
+  ListChecks, BarChart3, Trophy, Plus, ChevronDown, LogOut, Shield
+} from 'lucide-react';
+
+const initials = (n = '') => n.split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
 
 export const Navbar = () => {
   const location = useLocation();
   const { user, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
 
-  if (location.pathname === '/' || location.pathname === '/login') return null;
+  if (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register') return null;
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
+
+  const studentLinks = [
+    { to: '/dashboard',   label: 'Dashboard',   Icon: LayoutDashboard },
+    { to: '/quizzes',     label: 'Quizzes',      Icon: BookOpen },
+    { to: '/history',     label: 'History',      Icon: ListChecks },
+    { to: '/leaderboard', label: 'Leaderboard',  Icon: Trophy },
+  ];
+
+  const adminLinks = [
+    { to: '/admin',            label: 'Dashboard',   Icon: LayoutDashboard },
+    { to: '/admin/quizzes',    label: 'Quizzes',      Icon: BookOpen },
+    { to: '/admin/categories', label: 'Categories',   Icon: FolderTree },
+    { to: '/admin/users',      label: 'Users',        Icon: Users },
+    { to: '/admin/attempts',   label: 'Attempts',     Icon: ListChecks },
+    { to: '/leaderboard',      label: 'Leaderboard',  Icon: Trophy },
+  ];
+
+  const links = isAdmin ? adminLinks : studentLinks;
 
   return (
-    <motion.nav 
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      className="relative z-40 px-6 py-4 w-full bg-black/60 backdrop-blur-md border-b border-white/10"
-    >
-      <div className="liquid-glass rounded-full px-6 py-3 flex items-center justify-between max-w-7xl mx-auto border border-white/10 backdrop-blur-xl">
-        {/* Left side: Brand Logo & Links */}
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-2 group">
-            <Globe className="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12" />
-            <span className="text-white font-semibold text-lg tracking-tight">Examify Hub</span>
-          </Link>
+    <nav className="fixed top-0 w-full z-50 glass-strong border-x-0 border-t-0">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
 
-          {/* Navigation Links */}
-          <div className="hidden md:flex items-center gap-8 text-white/80 text-sm font-medium">
-            {user && (
-              <>
-                <Link
-                  to={isAdmin ? "/admin" : "/dashboard"}
-                  className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
-                    isActive(isAdmin ? "/admin" : "/dashboard") ? "text-white font-semibold" : "text-white/80"
-                  }`}
-                >
-                  <LayoutDashboard className="h-4 w-4" />
-                  Dashboard
-                </Link>
-
-                <Link
-                  to="/quizzes"
-                  className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
-                    isActive("/quizzes") ? "text-white font-semibold" : "text-white/80"
-                  }`}
-                >
-                  <BookOpen className="h-4 w-4" />
-                  Quizzes
-                </Link>
-
-                <Link
-                  to="/leaderboard"
-                  className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
-                    isActive("/leaderboard") ? "text-white font-semibold" : "text-white/80"
-                  }`}
-                >
-                  <Award className="h-4 w-4" />
-                  Leaderboard
-                </Link>
-
-                {!isAdmin && (
-                  <Link
-                    to="/history"
-                    className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
-                      isActive("/history") ? "text-white font-semibold" : "text-white/80"
-                    }`}
-                  >
-                    <BarChart3 className="h-4 w-4" />
-                    History
-                  </Link>
-                )}
-              </>
-            )}
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2.5 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+            <Zap className="w-5 h-5 text-white" />
           </div>
+          <span className="font-display font-bold text-lg hidden sm:block">
+            Quiz<span className="grad-text">Forge</span>
+          </span>
+        </Link>
+
+        {/* Nav links */}
+        <div className="flex items-center gap-0.5 overflow-x-auto max-w-[55vw] md:max-w-none">
+          {links.map(({ to, label, Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`nav-link flex items-center gap-1.5 ${isActive(to) ? 'nav-active' : ''}`}
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              <span className="hidden lg:inline">{label}</span>
+            </Link>
+          ))}
         </div>
 
-        {/* Right side: Actions & User controls */}
-        <div className="flex items-center gap-4">
-          {user ? (
-            <>
-              {isAdmin && (
-                <Link to="/admin/quizzes/new" className="hidden sm:block">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.96 }}
-                    className="liquid-glass rounded-full px-5 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity cursor-pointer border border-white/20 flex items-center gap-2"
-                  >
-                    <PlusCircle className="h-4 w-4" />
-                    <span>Create Quiz</span>
-                  </motion.button>
-                </Link>
-              )}
-
-              <button
-                type="button"
-                className="relative p-2 text-white/70 hover:text-white transition-colors cursor-pointer"
-                title="Notifications"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-white animate-pulse" />
-              </button>
-
-              <div className="flex items-center gap-3 pl-3 border-l border-white/10">
-                <img
-                  src={user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"}
-                  alt={user.name}
-                  className="h-8 w-8 rounded-full object-cover border border-white/20"
-                />
-                <div className="hidden lg:flex flex-col">
-                  <span className="text-xs font-medium text-white leading-tight">{user.name}</span>
-                  <span className="text-[10px] text-white/40 uppercase tracking-wider flex items-center gap-1">
-                    {isAdmin && <Shield className="h-2.5 w-2.5 text-white" />}
-                    {user.role}
-                  </span>
-                </div>
-
-                <button
-                  onClick={async () => {
-                    await logout();
-                    navigate('/login');
-                  }}
-                  className="p-2 text-white/70 hover:text-red-400 transition-colors cursor-pointer"
-                  title="Sign Out"
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="text-white hover:text-white/80 transition-colors text-sm font-medium cursor-pointer"
-              >
-                Sign Up
-              </Link>
-              <Link to="/login">
-                <button className="liquid-glass rounded-full px-6 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity cursor-pointer border border-white/20">
-                  Login
+        {/* User pill */}
+        {user ? (
+          <div className="flex items-center gap-2 shrink-0">
+            {isAdmin && (
+              <Link to="/admin/quizzes/new">
+                <button className="btn-primary px-4 py-2 rounded-xl text-xs font-bold text-white flex items-center gap-1.5 hidden sm:flex">
+                  <Plus className="w-4 h-4" /> New Quiz
                 </button>
               </Link>
-            </>
-          )}
-        </div>
+            )}
+            <div className="flex items-center gap-2 btn-ghost rounded-full pl-1 pr-3 py-1">
+              <span className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold shrink-0">
+                {initials(user.name)}
+              </span>
+              <span className="hidden md:block text-sm font-semibold max-w-[100px] truncate">{user.name?.split(' ')[0]}</span>
+              {isAdmin && <Shield className="w-3 h-3 text-indigo-300 shrink-0" />}
+            </div>
+            <button
+              onClick={async () => { await logout(); navigate('/login'); }}
+              className="p-2 text-zinc-400 hover:text-rose-400 transition-colors"
+              title="Sign Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <Link to="/login">
+            <button className="btn-primary px-5 py-2 rounded-xl text-sm font-bold text-white">Login</button>
+          </Link>
+        )}
       </div>
-    </motion.nav>
+    </nav>
   );
 };
+
+export default Navbar;

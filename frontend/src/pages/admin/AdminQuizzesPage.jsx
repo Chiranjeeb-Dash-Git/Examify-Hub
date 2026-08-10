@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AdminSidebar } from '../../components/AdminSidebar';
 import { AnimatedFluidBackground } from '../../components/landing/AnimatedFluidBackground';
 import { useQuiz } from '../../context/QuizContext';
 import { api } from '../../services/api';
@@ -236,12 +235,11 @@ export const AdminQuizzesPage = () => {
   };
 
   return (
-    <div className="admin-bg-wrap flex-col md:flex-row selection:bg-white selection:text-black">
+    <div className="relative z-10 pt-24 pb-16 px-4 max-w-7xl mx-auto min-h-screen selection:bg-white selection:text-black">
       <AnimatedFluidBackground />
       <div className="bg-scanlines" style={{ zIndex: 2 }} />
-      <AdminSidebar />
 
-      <main className="relative z-10 flex-grow p-4 md:p-6 overflow-y-auto space-y-6 max-h-[calc(100vh-4rem)]">
+      <div className="relative z-10 space-y-6">
         {/* Header Title Bar */}
         <div className="liquid-glass rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-white/10 backdrop-blur-xl">
           <div>
@@ -365,7 +363,7 @@ export const AdminQuizzesPage = () => {
             </motion.div>
           ))}
         </div>
-      </main>
+      </div>
 
       {/* Quiz Modal Form */}
       {showModal && (

@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { QuizProvider } from './context/QuizContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { Background3DMesh } from './components/Background3DMesh';
+import { BackgroundParticles } from './components/BackgroundParticles';
 
 // Pages
 import { LandingPage } from './pages/LandingPage';
@@ -24,6 +24,7 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { AdminQuizzesPage } from './pages/admin/AdminQuizzesPage';
 import { AdminQuestionsPage } from './pages/admin/AdminQuestionsPage';
 import { AdminCategoriesPage } from './pages/admin/AdminCategoriesPage';
+import { AdminAttemptsPage } from './pages/admin/AdminAttemptsPage';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
@@ -39,8 +40,10 @@ export function App() {
     <AuthProvider>
       <QuizProvider>
         <Router>
-          <div className="min-h-screen bg-[#050505] text-white flex flex-col selection:bg-white/20 selection:text-white relative">
-            <Background3DMesh />
+          <div className="min-h-screen text-white flex flex-col relative" style={{background:'var(--bg)'}}>
+            <div className="bg-mesh" />
+            <div className="grain" />
+            <BackgroundParticles />
             <Navbar />
             <div className="flex-grow">
               <Routes>
@@ -140,6 +143,14 @@ export function App() {
                   element={
                     <ProtectedRoute requireAdmin={true}>
                       <AdminCategoriesPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/attempts"
+                  element={
+                    <ProtectedRoute requireAdmin={true}>
+                      <AdminAttemptsPage />
                     </ProtectedRoute>
                   }
                 />

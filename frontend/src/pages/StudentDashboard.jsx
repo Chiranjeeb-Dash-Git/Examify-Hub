@@ -13,11 +13,11 @@ export const StudentDashboard = () => {
   const { quizzes, loading: quizLoading } = useQuiz();
   const [userAttempts, setUserAttempts] = useState([]);
   const [stats, setStats] = useState({
-    avgScore: user?.averageScore || 85,
-    quizzesPassed: 12,
-    quizzesFailed: 3,
-    totalAttempts: user?.quizzesAttempted || 15,
-    highestScore: user?.highestScore || 96
+    avgScore: user?.averageScore || 0,
+    quizzesPassed: 0,
+    quizzesFailed: 0,
+    totalAttempts: user?.quizzesAttempted || 0,
+    highestScore: user?.highestScore || 0
   });
 
   useEffect(() => {

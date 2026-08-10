@@ -59,7 +59,7 @@ export const BackgroundParticles = () => {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 z-0 pointer-events-none"
-      style={{ mixBlendMode: 'screen' }}
+      style={{ mixBlendMode: 'screen', filter: 'blur(8px)', opacity: 0.18 }}
     />
   );
 };

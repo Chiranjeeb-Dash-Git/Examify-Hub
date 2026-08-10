@@ -244,7 +244,7 @@ export const AnimatedFluidBackground = () => {
   return (
     <canvas
       ref={canvasRef}
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0 }}
+      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 0, filter: 'blur(100px)', opacity: 0.65 }}
       aria-hidden="true"
     />
   );

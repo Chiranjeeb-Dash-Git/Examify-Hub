@@ -74,11 +74,8 @@ export const AdminCategoriesPage = () => {
   };
 
   return (
-    <div className="relative z-10 pt-24 pb-16 px-4 max-w-7xl mx-auto min-h-screen selection:bg-white selection:text-black">
-      <AnimatedFluidBackground />
-      <div className="bg-scanlines" style={{ zIndex: 2 }} />
-
-      <div className="relative z-10 space-y-6">
+    <div className="min-h-screen py-8 pt-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
+      <div className="space-y-6">
         {/* Header Title Bar */}
         <div className="liquid-glass rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-white/10 backdrop-blur-xl">
           <div>

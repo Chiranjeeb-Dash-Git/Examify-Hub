@@ -6,30 +6,30 @@ export const QuizCard = ({ quiz }) => {
   const getDifficultyBadge = (difficulty) => {
     switch (difficulty?.toLowerCase()) {
       case 'beginner':
-        return 'bg-blue-500/20 text-blue-300 border-blue-500/30';
+        return 'ore-glow-gold bg-[#ffaa00]/10 text-[#ffaa00] border-[#ffaa00]/40';
       case 'intermediate':
-        return 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30';
+        return 'ore-glow-emerald bg-[#55ff55]/10 text-[#55ff55] border-[#55ff55]/40';
       case 'advanced':
-        return 'bg-purple-500/20 text-purple-300 border-purple-500/30';
+        return 'ore-glow-diamond bg-[#00ffff]/10 text-[#00ffff] border-[#00ffff]/40';
       default:
-        return 'bg-white/10 text-white border-white/20';
+        return 'ore-glow-netherite bg-[#555555]/10 text-white border-[#555555]/40';
     }
   };
 
   return (
-    <div className="glass-panel glass-panel-hover rounded-2xl overflow-hidden flex flex-col group h-full bg-[#0a0a0c] border border-white/10 hover:border-white/30 transition-all duration-300">
-      {/* Card Header Banner Image */}
-      <div className="relative h-44 w-full overflow-hidden bg-[#050505]">
+    <div className="voxel-card-3d rounded-none overflow-hidden flex flex-col group h-full bg-[#0d0d11] border-2 border-[#1c1c24] relative">
+      {/* Banner Image / Thumbnail */}
+      <div className="relative h-44 w-full overflow-hidden bg-[#050508] border-b-2 border-[#1c1c24]">
         <img
           src={quiz.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=600&q=80'}
           alt={quiz.title}
-          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+          className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-60"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0d0d11] via-[#0d0d11]/50 to-transparent" />
         
-        {/* Difficulty Badge */}
+        {/* Voxel Badge / Difficulty Indicator */}
         <span
-          className={`absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-mono font-medium border backdrop-blur-md ${getDifficultyBadge(
+          className={`absolute top-3 left-3 px-3 py-1 font-mono text-[10px] uppercase font-bold border ${getDifficultyBadge(
             quiz.difficulty
           )}`}
         >
@@ -37,42 +37,44 @@ export const QuizCard = ({ quiz }) => {
         </span>
 
         {/* Category Tag */}
-        <span className="absolute bottom-3 left-3 px-2.5 py-0.5 rounded-md text-[11px] font-mono text-white/90 bg-[#050505]/85 border border-white/20 backdrop-blur-md">
+        <span className="absolute bottom-3 left-3 px-2.5 py-0.5 font-mono text-[10px] text-white bg-[#050508] border border-white/10 uppercase">
           {quiz.categoryName}
         </span>
       </div>
 
-      {/* Content Body */}
-      <div className="p-5 flex flex-col flex-grow">
-        <h3 className="text-lg font-bold text-white group-hover:text-white/80 transition-colors line-clamp-1">
-          {quiz.title}
-        </h3>
-        <p className="mt-2 text-xs text-white/60 line-clamp-2 leading-relaxed flex-grow">
-          {quiz.description}
-        </p>
+      {/* Card Content Body */}
+      <div className="p-5 flex flex-col flex-grow space-y-4">
+        <div className="space-y-1">
+          <h3 className="text-lg font-bold text-white font-mono uppercase group-hover:text-[#55ff55] transition-colors line-clamp-1">
+            {quiz.title}
+          </h3>
+          <p className="text-xs text-white/50 font-mono line-clamp-2 leading-relaxed flex-grow">
+            {quiz.description}
+          </p>
+        </div>
 
-        {/* Meta Stats */}
-        <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-white/60 font-mono">
-          <div className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-white/80" />
-            <span>{quiz.duration} mins</span>
+        {/* Voxel Stats Slot */}
+        <div className="pt-3 border-t border-[#1c1c24] grid grid-cols-3 gap-2 text-[10px] text-white/60 font-mono">
+          <div className="flex flex-col items-center justify-center p-2 bg-[#14141a] border border-white/5">
+            <Clock className="h-3.5 w-3.5 text-white/80 mb-1" />
+            <span>{quiz.duration}m</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <HelpCircle className="h-3.5 w-3.5 text-emerald-400" />
-            <span>{quiz.questionsCount || 5} Questions</span>
+          <div className="flex flex-col items-center justify-center p-2 bg-[#14141a] border border-white/5">
+            <HelpCircle className="h-3.5 w-3.5 text-[#00ffff] mb-1" />
+            <span>{quiz.questionsCount || 5} Qs</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Award className="h-3.5 w-3.5 text-amber-300" />
+          <div className="flex flex-col items-center justify-center p-2 bg-[#14141a] border border-white/5">
+            <Award className="h-3.5 w-3.5 text-[#55ff55] mb-1" />
             <span>Pass: {quiz.passingScore}%</span>
           </div>
         </div>
 
-        {/* Action Link */}
+        {/* Initiate Directive Link Button */}
         <Link
           to={`/quizzes/${quiz.id}`}
-          className="mt-4 flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/15 hover:bg-white hover:text-black font-mono text-xs uppercase tracking-wider font-bold transition-all duration-300 group/btn"
+          className="voxel-btn-3d w-full flex items-center justify-between px-4 py-3 bg-[#1e1e24] text-white border border-[#33333f] font-mono text-xs uppercase tracking-wider font-extrabold hover:bg-white hover:text-black hover:border-white transition-all group/btn"
         >
-          <span>Initiate Assessment</span>
+          <span>Initiate Directive</span>
           <ArrowRight className="h-4 w-4 transform group-hover/btn:translate-x-1 transition-transform" />
         </Link>
       </div>

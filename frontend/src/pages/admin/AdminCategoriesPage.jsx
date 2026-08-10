@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { AdminSidebar } from '../../components/AdminSidebar';
+import { AnimatedFluidBackground } from '../../components/landing/AnimatedFluidBackground';
 import { useQuiz } from '../../context/QuizContext';
 import { api } from '../../services/api';
-import { Plus, Edit, Trash2, Layers, Image as ImageIcon } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Plus, Edit, Trash2, Image as ImageIcon } from 'lucide-react';
 
 export const AdminCategoriesPage = () => {
   const { categories, refreshData } = useQuiz();
@@ -73,73 +75,84 @@ export const AdminCategoriesPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] flex">
+    <div className="admin-bg-wrap flex-col md:flex-row selection:bg-white selection:text-black">
+      <AnimatedFluidBackground />
+      <div className="bg-scanlines" style={{ zIndex: 2 }} />
       <AdminSidebar />
 
-      <main className="flex-grow p-6 sm:p-8 space-y-8 overflow-y-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <main className="relative z-10 flex-grow p-4 md:p-6 overflow-y-auto space-y-6 max-h-[calc(100vh-4rem)]">
+        {/* Header Title Bar */}
+        <div className="liquid-glass rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-white/10 backdrop-blur-xl">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-              Category <span className="text-white/80">Management</span>
+            <h1 
+              className="text-3xl sm:text-4xl font-medium text-white tracking-tight"
+              style={{ fontFamily: "'Instrument Serif', serif" }}
+            >
+              Assessment Category Domains
             </h1>
-            <p className="mt-1 text-sm text-white/60 font-mono">
+            <p className="mt-1 text-xs text-white/60 font-sans">
               Organize assessment domains and topics with rich cover pictures
             </p>
           </div>
 
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => handleOpenModal()}
-            className="px-5 py-2.5 rounded-xl bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-white/90 transition-all flex items-center gap-2 shadow-lg shadow-white/10"
+            className="px-6 py-2.5 rounded-full bg-white text-black font-medium text-xs hover:bg-white/90 transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-white/10"
           >
             <Plus className="h-4 w-4" />
-            Add Category
-          </button>
+            <span>Add Category</span>
+          </motion.button>
         </div>
 
-        {/* Categories Grid with Cover Picture Banners */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Categories Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {categories.map((cat) => (
-            <div key={cat.id} className="glass-panel glass-panel-hover rounded-3xl overflow-hidden border border-white/10 flex flex-col justify-between group">
-              {/* Cover Picture Banner Header */}
-              <div className="relative h-44 w-full overflow-hidden bg-[#181c22]">
+            <motion.div
+              key={cat.id}
+              whileHover={{ y: -4 }}
+              className="liquid-glass rounded-3xl overflow-hidden border border-white/10 flex flex-col justify-between backdrop-blur-xl group"
+            >
+              {/* Cover Picture */}
+              <div className="relative h-44 w-full overflow-hidden bg-black">
                 <img
                   src={getCategoryCoverImage(cat)}
                   alt={cat.name}
-                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-75"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#181c22] via-[#181c22]/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                 
-                {/* Quiz Count Badge */}
-                <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-mono font-medium border border-[#38BDF8]/30 bg-[#10141a]/80 text-[#38BDF8] backdrop-blur-md">
+                <span className="absolute top-3 right-3 px-3 py-1 rounded-full text-[11px] font-medium liquid-glass text-white border border-white/20 backdrop-blur-md">
                   {cat.count || 0} Quizzes
                 </span>
               </div>
 
-              {/* Card Body */}
+              {/* Body */}
               <div className="p-6 flex flex-col flex-grow justify-between space-y-4">
                 <div className="space-y-2">
-                  <h3 className="text-xl font-bold text-white group-hover:text-[#38BDF8] transition-colors">{cat.name}</h3>
-                  <p className="text-xs text-[#88929b] line-clamp-2 leading-relaxed">{cat.description}</p>
+                  <h3 className="text-xl font-medium text-white leading-snug">{cat.name}</h3>
+                  <p className="text-xs text-white/60 line-clamp-2 leading-relaxed">{cat.description}</p>
                 </div>
 
                 <div className="pt-4 border-t border-white/10 flex items-center justify-end gap-2">
                   <button
                     onClick={() => handleOpenModal(cat)}
-                    className="p-2 rounded-lg bg-[#262a31] text-[#dfe2eb] hover:bg-[#38BDF8] hover:text-[#10141a] transition-all"
+                    className="p-2 rounded-full liquid-glass text-white/70 hover:text-white transition-all cursor-pointer border border-white/20"
                     title="Edit Category"
                   >
                     <Edit className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(cat.id)}
-                    className="p-2 rounded-lg bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
+                    className="p-2 rounded-full liquid-glass text-white/70 hover:text-red-400 transition-all cursor-pointer border border-white/20"
                     title="Delete Category"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </main>
@@ -147,68 +160,67 @@ export const AdminCategoriesPage = () => {
       {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-md glass-panel p-6 rounded-3xl border border-white/10 space-y-6">
-            <h3 className="text-xl font-bold text-white">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-md liquid-glass p-6 rounded-3xl border border-white/20 space-y-6 bg-black/90">
+            <h3 className="text-2xl font-medium text-white" style={{ fontFamily: "'Instrument Serif', serif" }}>
               {editingCategory ? 'Edit Category' : 'Add New Category'}
             </h3>
 
-            <form onSubmit={handleSave} className="space-y-4 text-xs font-sans">
-              <div>
-                <label className="block text-[#88929b] uppercase font-mono mb-1">Category Name</label>
+            <form onSubmit={handleSave} className="space-y-4 text-xs">
+              <div className="space-y-1.5">
+                <label className="block text-white/60 uppercase text-[10px] tracking-wider">Category Name</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="e.g. Machine Learning"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#10141a] border border-white/10 text-white text-sm focus:outline-none focus:border-[#38BDF8]"
+                  className="w-full p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-white text-xs focus:outline-none focus:border-white/40"
                 />
               </div>
 
-              <div>
-                <label className="block text-[#88929b] uppercase font-mono mb-1">Description</label>
+              <div className="space-y-1.5">
+                <label className="block text-white/60 uppercase text-[10px] tracking-wider">Description</label>
                 <textarea
                   required
                   rows={3}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Enter domain overview..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#10141a] border border-white/10 text-white text-sm focus:outline-none focus:border-[#38BDF8]"
+                  className="w-full p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-white text-xs focus:outline-none focus:border-white/40"
                 />
               </div>
 
-              <div>
-                <label className="block text-[#88929b] uppercase font-mono mb-1">Cover Image URL</label>
+              <div className="space-y-1.5">
+                <label className="block text-white/60 uppercase text-[10px] tracking-wider">Cover Image URL</label>
                 <div className="relative">
-                  <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#88929b]" />
+                  <ImageIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                   <input
                     type="url"
                     value={formData.image}
                     onChange={(e) => setFormData({ ...formData, image: e.target.value })}
                     placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full pl-9 pr-3.5 py-2.5 rounded-xl bg-[#10141a] border border-white/10 text-white text-sm focus:outline-none focus:border-[#38BDF8]"
+                    className="w-full pl-9 pr-3.5 py-3 rounded-2xl bg-white/[0.03] border border-white/10 text-white text-xs focus:outline-none focus:border-white/40"
                   />
                 </div>
-                <p className="text-[10px] text-[#88929b] mt-1">Leave empty to use default domain cover picture</p>
               </div>
 
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="px-4 py-2 rounded-xl bg-[#262a31] text-white hover:bg-white/10"
+                  className="px-5 py-2.5 rounded-full liquid-glass text-white/80 hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-[#38BDF8] text-[#10141a] font-bold hover:bg-[#38BDF8]/90"
+                  className="px-6 py-2.5 rounded-full bg-white text-black font-medium uppercase tracking-wider hover:bg-white/90"
                 >
                   Save Category
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

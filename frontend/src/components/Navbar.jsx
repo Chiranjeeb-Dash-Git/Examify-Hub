@@ -1,7 +1,8 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Bell, User, LogOut, Shield, Award, BookOpen, LayoutDashboard, PlusCircle, BarChart3 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Bell, LogOut, Shield, Award, BookOpen, LayoutDashboard, PlusCircle, BarChart3, Globe } from 'lucide-react';
 
 export const Navbar = () => {
   const location = useLocation();
@@ -13,164 +14,138 @@ export const Navbar = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[#050505]/85 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Brand Logo */}
+    <motion.nav 
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="relative z-40 px-6 py-4 w-full bg-black/60 backdrop-blur-md border-b border-white/10"
+    >
+      <div className="liquid-glass rounded-full px-6 py-3 flex items-center justify-between max-w-7xl mx-auto border border-white/10 backdrop-blur-xl">
+        {/* Left side: Brand Logo & Links */}
         <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="h-2.5 w-2.5 bg-white rounded-none transition-transform duration-500 group-hover:rotate-45" />
-            <div className="flex flex-col">
-              <span className="font-display font-extrabold text-sm tracking-[0.2em] text-white uppercase">
-                EXAMIFY HUB
-              </span>
-              <span className="font-mono text-[10px] text-white/40 tracking-wider uppercase -mt-0.5">
-                v2.4 TELEMETRY
-              </span>
-            </div>
+          <Link to="/" className="flex items-center gap-2 group">
+            <Globe className="w-6 h-6 text-white transition-transform duration-300 group-hover:rotate-12" />
+            <span className="text-white font-semibold text-lg tracking-tight">Examify Hub</span>
           </Link>
 
-          {/* Main Navigation Links */}
-          <nav className="hidden md:flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider">
+          {/* Navigation Links */}
+          <div className="hidden md:flex items-center gap-8 text-white/80 text-sm font-medium">
             {user && (
               <>
                 <Link
                   to={isAdmin ? "/admin" : "/dashboard"}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all ${
-                    isActive(isAdmin ? "/admin" : "/dashboard")
-                      ? "bg-white/10 text-white border border-white/20 font-bold"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
+                    isActive(isAdmin ? "/admin" : "/dashboard") ? "text-white font-semibold" : "text-white/80"
                   }`}
                 >
-                  <LayoutDashboard className="h-4 w-4 text-white" />
+                  <LayoutDashboard className="h-4 w-4" />
                   Dashboard
                 </Link>
 
                 <Link
                   to="/quizzes"
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all ${
-                    isActive("/quizzes")
-                      ? "bg-white/10 text-white border border-white/20 font-bold"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
+                    isActive("/quizzes") ? "text-white font-semibold" : "text-white/80"
                   }`}
                 >
-                  <BookOpen className="h-4 w-4 text-white" />
+                  <BookOpen className="h-4 w-4" />
                   Quizzes
                 </Link>
 
                 <Link
                   to="/leaderboard"
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all ${
-                    isActive("/leaderboard")
-                      ? "bg-white/10 text-white border border-white/20 font-bold"
-                      : "text-white/60 hover:text-white hover:bg-white/5"
+                  className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
+                    isActive("/leaderboard") ? "text-white font-semibold" : "text-white/80"
                   }`}
                 >
-                  <Award className="h-4 w-4 text-white" />
+                  <Award className="h-4 w-4" />
                   Leaderboard
                 </Link>
 
                 {!isAdmin && (
                   <Link
                     to="/history"
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all ${
-                      isActive("/history")
-                        ? "bg-white/10 text-white border border-white/20 font-bold"
-                        : "text-white/60 hover:text-white hover:bg-white/5"
+                    className={`transition-colors duration-300 hover:text-white flex items-center gap-1.5 ${
+                      isActive("/history") ? "text-white font-semibold" : "text-white/80"
                     }`}
                   >
-                    <BarChart3 className="h-4 w-4 text-white" />
+                    <BarChart3 className="h-4 w-4" />
                     History
-                  </Link>
-                )}
-
-                {isAdmin && (
-                  <Link
-                    to="/admin/analytics"
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-xl transition-all ${
-                      isActive("/admin/analytics")
-                        ? "bg-white/10 text-white border border-white/20 font-bold"
-                        : "text-white/60 hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    <BarChart3 className="h-4 w-4 text-white" />
-                    Analytics
                   </Link>
                 )}
               </>
             )}
-          </nav>
+          </div>
         </div>
 
-        {/* Right Header Controls */}
-        <div className="flex items-center gap-3">
+        {/* Right side: Actions & User controls */}
+        <div className="flex items-center gap-4">
           {user ? (
             <>
               {isAdmin && (
-                <Link
-                  to="/admin/quizzes/new"
-                  className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-white/90 shadow-lg shadow-white/10 transition-all"
-                >
-                  <PlusCircle className="h-4 w-4" />
-                  Create Quiz
+                <Link to="/admin/quizzes/new" className="hidden sm:block">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="liquid-glass rounded-full px-5 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity cursor-pointer border border-white/20 flex items-center gap-2"
+                  >
+                    <PlusCircle className="h-4 w-4" />
+                    <span>Create Quiz</span>
+                  </motion.button>
                 </Link>
               )}
 
-              {/* Notification Icon */}
               <button
                 type="button"
-                className="relative p-2 rounded-xl text-white/60 hover:text-white hover:bg-white/5 transition-colors"
+                className="relative p-2 text-white/70 hover:text-white transition-colors cursor-pointer"
                 title="Notifications"
               >
                 <Bell className="h-5 w-5" />
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-white animate-pulse" />
               </button>
 
-              {/* User Pill & Role Indicator */}
               <div className="flex items-center gap-3 pl-3 border-l border-white/10">
                 <img
                   src={user.avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=250&q=80"}
                   alt={user.name}
-                  className="h-9 w-9 rounded-full object-cover border border-white/20"
+                  className="h-8 w-8 rounded-full object-cover border border-white/20"
                 />
                 <div className="hidden lg:flex flex-col">
-                  <span className="text-sm font-semibold text-white leading-tight">{user.name}</span>
-                  <span className="text-[10px] font-mono text-white/40 uppercase tracking-widest flex items-center gap-1">
-                    {isAdmin ? <Shield className="h-3 w-3 inline text-emerald-400" /> : null}
+                  <span className="text-xs font-medium text-white leading-tight">{user.name}</span>
+                  <span className="text-[10px] text-white/40 uppercase tracking-wider flex items-center gap-1">
+                    {isAdmin && <Shield className="h-2.5 w-2.5 text-white" />}
                     {user.role}
                   </span>
                 </div>
 
-                {/* Logout Button */}
                 <button
                   onClick={async () => {
                     await logout();
                     navigate('/login');
                   }}
-                  className="p-2 rounded-xl text-white/60 hover:text-red-400 hover:bg-red-500/10 transition-colors ml-1"
+                  className="p-2 text-white/70 hover:text-red-400 transition-colors cursor-pointer"
                   title="Sign Out"
                 >
-                  <LogOut className="h-5 w-5" />
+                  <LogOut className="h-4 w-4" />
                 </button>
               </div>
             </>
           ) : (
-            <div className="flex items-center gap-3 font-mono text-xs uppercase tracking-wider">
+            <>
               <Link
                 to="/login"
-                className="px-4 py-2 rounded-xl text-white/60 hover:text-white transition-colors"
+                className="text-white hover:text-white/80 transition-colors text-sm font-medium cursor-pointer"
               >
-                Sign In
+                Sign Up
               </Link>
-              <Link
-                to="/register"
-                className="px-5 py-2 rounded-full bg-white text-black font-bold hover:bg-white/90 transition-all shadow-lg shadow-white/10"
-              >
-                Get Started
+              <Link to="/login">
+                <button className="liquid-glass rounded-full px-6 py-2 text-sm font-medium text-white hover:opacity-90 transition-opacity cursor-pointer border border-white/20">
+                  Login
+                </button>
               </Link>
-            </div>
+            </>
           )}
         </div>
       </div>
-    </header>
+    </motion.nav>
   );
 };

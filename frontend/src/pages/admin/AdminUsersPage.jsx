@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { AdminSidebar } from '../../components/AdminSidebar';
+import { AnimatedFluidBackground } from '../../components/landing/AnimatedFluidBackground';
 import { api } from '../../services/api';
-import { Search, UserCheck, UserX, Trash2, Eye, ShieldAlert, Award, Clock } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Search, UserCheck, UserX, Trash2, Eye } from 'lucide-react';
 
 export const AdminUsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -62,75 +64,81 @@ export const AdminUsersPage = () => {
   );
 
   return (
-    <div className="min-h-screen bg-[#050505] flex text-white font-body">
+    <div className="admin-bg-wrap flex-col md:flex-row selection:bg-white selection:text-black">
+      <AnimatedFluidBackground />
+      <div className="bg-scanlines" style={{ zIndex: 2 }} />
       <AdminSidebar />
 
-      <main className="flex-grow p-6 sm:p-8 space-y-8 overflow-y-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
+      <main className="relative z-10 flex-grow p-4 md:p-6 overflow-y-auto space-y-6 max-h-[calc(100vh-4rem)]">
+        {/* Header Control */}
+        <div className="liquid-glass rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-white/10 backdrop-blur-xl">
           <div>
-            <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight">
-              Candidate <span className="text-white/80">Management</span>
+            <h1 
+              className="text-3xl sm:text-4xl font-medium text-white tracking-tight"
+              style={{ fontFamily: "'Instrument Serif', serif" }}
+            >
+              Candidate Account Registry
             </h1>
-            <p className="mt-1 text-sm text-white/60 font-mono">
-              Monitor, activate, or deactivate candidate accounts
+            <p className="mt-1 text-xs text-white/60 font-sans">
+              Monitor candidate telemetry, activate/deactivate access, and view activity history
             </p>
           </div>
 
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search candidate name or email..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#0a0a0c] border border-white/10 text-white placeholder-white/30 text-xs font-mono focus:outline-none focus:border-white/40"
+              className="w-full pl-11 pr-4 py-2.5 rounded-full liquid-glass border border-white/20 text-white placeholder-white/40 text-xs outline-none focus:border-white/40"
             />
           </div>
         </div>
 
         {/* Users Table */}
-        <div className="glass-panel p-6 rounded-3xl border border-white/10">
+        <div className="liquid-glass p-6 rounded-3xl border border-white/10 backdrop-blur-xl max-w-7xl mx-auto">
           {loading ? (
-            <div className="text-center py-12 text-[#88929b]">Loading candidate registry...</div>
+            <div className="text-center py-12 text-white/60 text-xs">Loading candidate registry...</div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-[#dfe2eb]">
-                <thead className="text-xs font-mono uppercase text-[#88929b] border-b border-white/10">
+              <table className="w-full text-left text-xs text-white/90">
+                <thead className="text-[10px] font-mono uppercase text-white/50 border-b border-white/10">
                   <tr>
-                    <th className="py-3 px-4">Candidate</th>
-                    <th className="py-3 px-4">Role</th>
-                    <th className="py-3 px-4">Quizzes Attempted</th>
-                    <th className="py-3 px-4">Average Score</th>
-                    <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4 text-right">Actions</th>
+                    <th className="py-3.5 px-4">Candidate</th>
+                    <th className="py-3.5 px-4">Role</th>
+                    <th className="py-3.5 px-4">Attempts</th>
+                    <th className="py-3.5 px-4">Avg Accuracy</th>
+                    <th className="py-3.5 px-4">Status</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-white/5 font-mono">
+                <tbody className="divide-y divide-white/5 font-sans">
                   {filteredUsers.map((u) => (
-                    <tr key={u.id} className="hover:bg-white/5 transition-colors">
-                      <td className="py-3.5 px-4 font-sans font-medium text-white flex items-center gap-3">
-                        <img src={u.avatar} alt={u.name} className="h-8 w-8 rounded-full object-cover border border-white/10" />
+                    <tr key={u.id} className="hover:bg-white/[0.03] transition-colors">
+                      <td className="py-4 px-4 font-medium text-white flex items-center gap-3">
+                        <img src={u.avatar} alt={u.name} className="h-8 w-8 rounded-full object-cover border border-white/20" />
                         <div>
-                          <div className="font-bold">{u.name}</div>
-                          <div className="text-xs text-[#88929b] font-mono">{u.email}</div>
+                          <div className="font-semibold text-sm">{u.name}</div>
+                          <div className="text-[11px] text-white/50 font-mono">{u.email}</div>
                         </div>
                       </td>
-                      <td className="py-3.5 px-4 text-xs">
-                        <span className={`px-2.5 py-0.5 rounded-full ${u.role === 'ADMIN' ? 'bg-[#6be026]/20 text-[#6be026]' : 'bg-[#38BDF8]/20 text-[#38BDF8]'}`}>
+                      <td className="py-4 px-4">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-medium liquid-glass border border-white/20`}>
                           {u.role}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-[#88929b]">{u.quizzesAttempted || 0}</td>
-                      <td className="py-3.5 px-4 text-[#38BDF8] font-bold">{u.averageScore || 0}%</td>
-                      <td className="py-3.5 px-4">
-                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono ${u.status === 'ACTIVE' ? 'bg-[#6be026]/20 text-[#6be026]' : 'bg-red-500/20 text-red-400'}`}>
+                      <td className="py-4 px-4 text-white/70">{u.quizzesAttempted || 0}</td>
+                      <td className="py-4 px-4 text-white font-semibold">{u.averageScore || 0}%</td>
+                      <td className="py-4 px-4">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-medium liquid-glass ${u.status === 'ACTIVE' ? 'border border-white/40 text-white' : 'border border-white/10 text-white/40'}`}>
                           {u.status}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right font-sans space-x-2">
+                      <td className="py-4 px-4 text-right space-x-2">
                         <button
                           onClick={() => handleViewProfile(u)}
-                          className="p-1.5 rounded-lg bg-[#262a31] text-[#38BDF8] hover:bg-[#38BDF8] hover:text-[#10141a] transition-all"
+                          className="p-2 rounded-full liquid-glass text-white/80 hover:text-white transition-all cursor-pointer border border-white/20"
                           title="View Profile & History"
                         >
                           <Eye className="h-4 w-4" />
@@ -139,14 +147,14 @@ export const AdminUsersPage = () => {
                           <>
                             <button
                               onClick={() => handleToggleStatus(u.id)}
-                              className={`p-1.5 rounded-lg transition-all ${u.status === 'ACTIVE' ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500 hover:text-[#10141a]' : 'bg-[#6be026]/20 text-[#6be026] hover:bg-[#6be026] hover:text-[#10141a]'}`}
+                              className="p-2 rounded-full liquid-glass text-white/80 hover:text-white transition-all cursor-pointer border border-white/20"
                               title={u.status === 'ACTIVE' ? 'Deactivate Account' : 'Activate Account'}
                             >
                               {u.status === 'ACTIVE' ? <UserX className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
                             </button>
                             <button
                               onClick={() => handleDeleteUser(u.id)}
-                              className="p-1.5 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                              className="p-2 rounded-full liquid-glass text-white/80 hover:text-red-400 transition-all cursor-pointer border border-white/20"
                               title="Delete User"
                             >
                               <Trash2 className="h-4 w-4" />
@@ -166,57 +174,57 @@ export const AdminUsersPage = () => {
       {/* Candidate Profile Modal */}
       {selectedUser && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="w-full max-w-2xl glass-panel p-6 rounded-3xl border border-white/10 space-y-6 max-h-[90vh] overflow-y-auto">
+          <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-full max-w-2xl liquid-glass p-6 rounded-3xl border border-white/20 space-y-6 max-h-[90vh] overflow-y-auto bg-black/90">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-4">
-                <img src={selectedUser.avatar} alt={selectedUser.name} className="h-12 w-12 rounded-full object-cover border border-[#38BDF8]" />
+                <img src={selectedUser.avatar} alt={selectedUser.name} className="h-12 w-12 rounded-full object-cover border border-white/30" />
                 <div>
-                  <h3 className="text-xl font-bold text-white">{selectedUser.name}</h3>
-                  <p className="text-xs font-mono text-[#88929b]">{selectedUser.email}</p>
+                  <h3 className="text-xl font-semibold text-white">{selectedUser.name}</h3>
+                  <p className="text-xs text-white/60 font-mono">{selectedUser.email}</p>
                 </div>
               </div>
-              <button onClick={() => setSelectedUser(null)} className="text-[#88929b] hover:text-white font-mono text-sm">✕ Close</button>
+              <button onClick={() => setSelectedUser(null)} className="text-white/60 hover:text-white text-xs font-mono">✕ Close</button>
             </div>
 
             {/* Profile Telemetry Stats */}
-            <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-[#10141a] font-mono text-center">
+            <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl liquid-glass border border-white/10 text-center">
               <div>
-                <span className="text-[10px] text-[#88929b] uppercase block">QUIZZES TAKEN</span>
-                <span className="text-xl font-bold text-white">{selectedUser.quizzesAttempted}</span>
+                <span className="text-[10px] text-white/60 uppercase block">QUIZZES TAKEN</span>
+                <span className="text-xl font-semibold text-white">{selectedUser.quizzesAttempted}</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#88929b] uppercase block">AVG ACCURACY</span>
-                <span className="text-xl font-bold text-[#38BDF8]">{selectedUser.averageScore}%</span>
+                <span className="text-[10px] text-white/60 uppercase block">AVG ACCURACY</span>
+                <span className="text-xl font-semibold text-white">{selectedUser.averageScore}%</span>
               </div>
               <div>
-                <span className="text-[10px] text-[#88929b] uppercase block">HIGH SCORE</span>
-                <span className="text-xl font-bold text-[#6be026]">{selectedUser.highestScore}%</span>
+                <span className="text-[10px] text-white/60 uppercase block">HIGH SCORE</span>
+                <span className="text-xl font-semibold text-white">{selectedUser.highestScore}%</span>
               </div>
             </div>
 
             {/* Quiz Attempt History */}
             <div className="space-y-3">
-              <h4 className="text-sm font-bold text-white">Candidate Attempt Log</h4>
+              <h4 className="text-xs font-semibold text-white uppercase tracking-wider">Candidate Telemetry Log</h4>
               {userHistory.length === 0 ? (
-                <p className="text-xs text-[#88929b]">No quiz attempt records logged.</p>
+                <p className="text-xs text-white/60">No quiz attempt records logged.</p>
               ) : (
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                   {userHistory.map(att => (
-                    <div key={att.id} className="p-3 rounded-xl bg-[#10141a] border border-white/5 flex items-center justify-between text-xs font-mono">
+                    <div key={att.id} className="p-3 rounded-2xl liquid-glass border border-white/10 flex items-center justify-between text-xs">
                       <div>
-                        <span className="text-white font-bold block">{att.quizTitle}</span>
-                        <span className="text-[#88929b] text-[10px]">{att.timeTaken}</span>
+                        <span className="text-white font-medium block">{att.quizTitle}</span>
+                        <span className="text-white/40 text-[10px]">{att.timeTaken}</span>
                       </div>
                       <div className="text-right">
-                        <span className="text-[#38BDF8] font-bold block">{att.percentage}%</span>
-                        <span className={`text-[10px] ${att.status === 'PASSED' ? 'text-[#6be026]' : 'text-red-400'}`}>{att.status}</span>
+                        <span className="text-white font-semibold block">{att.percentage}%</span>
+                        <span className="text-[10px] text-white/60">{att.status}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

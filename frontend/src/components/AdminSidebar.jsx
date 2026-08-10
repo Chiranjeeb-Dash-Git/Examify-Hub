@@ -1,83 +1,72 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, Layers, BarChart3, Settings, Shield, PlusCircle } from 'lucide-react';
+import { motion } from 'motion/react';
+import { LayoutDashboard, Users, BookOpen, Layers, PlusCircle, ShieldAlert } from 'lucide-react';
 
 export const AdminSidebar = () => {
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
 
+  const navItems = [
+    { path: '/admin', label: 'Platform Analytics', icon: LayoutDashboard },
+    { path: '/admin/quizzes', label: 'Quiz Management', icon: BookOpen },
+    { path: '/admin/users', label: 'Student Management', icon: Users },
+    { path: '/admin/categories', label: 'Categories', icon: Layers },
+  ];
+
   return (
-    <aside className="w-64 glass-panel border-r border-white/10 p-6 flex flex-col justify-between shrink-0 hidden md:flex min-h-[calc(100vh-4rem)] bg-[#050505]/80">
+    <aside className="w-64 liquid-glass border-r border-white/10 p-6 flex flex-col justify-between shrink-0 hidden md:flex min-h-[calc(100vh-5rem)] z-20 my-4 ml-4 rounded-3xl backdrop-blur-xl">
       <div className="space-y-6">
         {/* Command Center Title */}
         <div className="border-b border-white/10 pb-4">
-          <span className="text-[10px] font-mono text-emerald-400 uppercase tracking-widest flex items-center gap-1.5">
-            <Shield className="h-3.5 w-3.5 text-emerald-400" />
-            COMMAND CENTER
+          <span className="text-[10px] font-mono uppercase tracking-[0.2em] flex items-center gap-1.5 text-white/80">
+            <ShieldAlert className="h-3.5 w-3.5 text-white" />
+            ADMIN GATEWAY
           </span>
-          <h2 className="text-xl font-extrabold text-white mt-1 font-display">Elite Tier Admin</h2>
+          <h2 
+            className="text-xl font-medium text-white mt-1 bg-gradient-to-b from-white via-white/95 to-white/70 bg-clip-text text-transparent"
+            style={{ fontFamily: "'Instrument Serif', serif" }}
+          >
+            Examify Hub Admin
+          </h2>
         </div>
 
         {/* Navigation Group */}
-        <nav className="space-y-1.5 font-mono text-xs uppercase tracking-wider">
-          <Link
-            to="/admin"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-              isActive("/admin")
-                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            Platform Analytics
-          </Link>
-
-          <Link
-            to="/admin/quizzes"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-              isActive("/admin/quizzes")
-                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <BookOpen className="h-4 w-4" />
-            Quiz Management
-          </Link>
-
-          <Link
-            to="/admin/users"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-              isActive("/admin/users")
-                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Users className="h-4 w-4" />
-            Student Management
-          </Link>
-
-          <Link
-            to="/admin/categories"
-            className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all ${
-              isActive("/admin/categories")
-                ? "bg-white text-black font-bold shadow-lg shadow-white/10"
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <Layers className="h-4 w-4" />
-            Categories
-          </Link>
+        <nav className="space-y-2 text-xs font-medium tracking-wide">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isActive(item.path);
+            return (
+              <Link key={item.path} to={item.path}>
+                <motion.div
+                  whileHover={{ x: 3 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-full transition-all duration-300 ${
+                    active
+                      ? "liquid-glass text-white font-semibold shadow-inner border border-white/30"
+                      : "text-white/70 hover:text-white hover:bg-white/[0.04]"
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 ${active ? "text-white" : "text-white/60"}`} />
+                  <span>{item.label}</span>
+                </motion.div>
+              </Link>
+            );
+          })}
         </nav>
       </div>
 
       {/* Quick Action Button */}
       <div className="pt-6 border-t border-white/10">
-        <Link
-          to="/admin/quizzes/new"
-          className="flex items-center justify-center gap-2 w-full py-3 rounded-xl border border-white/20 text-white font-mono text-xs uppercase tracking-wider font-bold hover:bg-white hover:text-black transition-all duration-300"
-        >
-          <PlusCircle className="h-4 w-4" />
-          <span>New Quiz</span>
+        <Link to="/admin/quizzes/new">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.96 }}
+            className="flex items-center justify-center gap-2 w-full py-3.5 px-4 liquid-glass rounded-full text-xs font-medium text-white hover:opacity-90 transition-all duration-300 cursor-pointer border border-white/20"
+          >
+            <PlusCircle className="h-4 w-4" />
+            <span>Create New Quiz</span>
+          </motion.button>
         </Link>
       </div>
     </aside>

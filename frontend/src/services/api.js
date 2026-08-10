@@ -155,9 +155,9 @@ export const api = {
     const localQuizzes = getStorage('quizzes', INITIAL_QUIZZES);
     const questions = getStorage('questions', INITIAL_QUESTIONS);
 
-    const computeCount = (qId) => {
+    const computeCount = (qId, serverCount = 0) => {
       const actualCount = questions.filter(item => item.quizId === qId).length;
-      return actualCount > 0 ? actualCount : 10;
+      return actualCount > 0 ? actualCount : (serverCount || 0);
     };
 
     try {
@@ -168,7 +168,7 @@ export const api = {
         [...INITIAL_QUIZZES, ...localQuizzes, ...serverQuizzes].forEach(q => {
           map.set(q.id, {
             ...q,
-            questionsCount: computeCount(q.id)
+            questionsCount: computeCount(q.id, q.questionsCount)
           });
         });
         const merged = Array.from(map.values());
@@ -180,7 +180,7 @@ export const api = {
     }
     return localQuizzes.map(q => ({
       ...q,
-      questionsCount: computeCount(q.id)
+      questionsCount: computeCount(q.id, q.questionsCount)
     }));
   },
 
@@ -260,6 +260,19 @@ export const api = {
 
   // Questions
   getQuestionsForQuiz: async (quizId) => {
+    try {
+      const response = await fetch(`/api/quizzes/${quizId}/questions`);
+      if (response.ok) {
+        const serverQuestions = await response.json();
+        const localQuestions = getStorage('questions', INITIAL_QUESTIONS).filter(q => q.quizId !== quizId);
+        const merged = [...localQuestions, ...serverQuestions];
+        setStorage('questions', merged);
+        return serverQuestions;
+      }
+    } catch (e) {
+      console.warn('Backend getQuestionsForQuiz sync warning:', e.message);
+    }
+
     const questions = getStorage('questions', INITIAL_QUESTIONS);
     const quizQuestions = questions.filter(q => q.quizId === quizId);
     return quizQuestions.map(q => ({
@@ -297,7 +310,28 @@ export const api = {
     }
     setStorage('questions', questions);
 
-    // Update questions count in quiz
+    try {
+      const response = await fetch('/api/questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('examify_hub_token')}`
+        },
+        body: JSON.stringify(newQuestion)
+      });
+      if (response.ok) {
+        const savedServerQuestion = await response.json();
+        newQuestion.id = savedServerQuestion.id || newQuestion.id;
+        const idx = questions.findIndex(q => q.id === (questionData.id || qId));
+        if (idx !== -1) {
+          questions[idx] = newQuestion;
+          setStorage('questions', questions);
+        }
+      }
+    } catch (e) {
+      console.warn('Backend saveQuestion sync warning:', e.message);
+    }
+
     const quizzes = getStorage('quizzes', INITIAL_QUIZZES);
     const quizIdx = quizzes.findIndex(q => q.id === questionData.quizId);
     if (quizIdx !== -1) {
@@ -314,7 +348,17 @@ export const api = {
     questions = questions.filter(q => q.id !== questionId);
     setStorage('questions', questions);
 
-    // Update count in quiz
+    try {
+      await fetch(`/api/questions/${questionId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('examify_hub_token')}`
+        }
+      });
+    } catch (e) {
+      console.warn('Backend deleteQuestion sync warning:', e.message);
+    }
+
     const quizzes = getStorage('quizzes', INITIAL_QUIZZES);
     const quizIdx = quizzes.findIndex(q => q.id === quizId);
     if (quizIdx !== -1) {

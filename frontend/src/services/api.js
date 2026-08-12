@@ -260,43 +260,169 @@ export const api = {
 
   // Questions
   getQuestionsForQuiz: async (quizId) => {
+    const TEXT_KEY_BLACKLIST = new Set([
+      'id', 'quizId', 'quiz_id', 'difficulty', 'status', 'createdAt', 'updatedAt',
+      'created_at', 'updated_at', 'categoryId', 'category_id', 'type', 'format',
+      'explanation', 'explain', 'marks', 'points', 'score', 'order', 'sort',
+      'userId', 'user_id', 'authorId', 'author_id'
+    ]);
+
+    const heuristicQuestionText = (q) => {
+      if (!q) return '';
+      const direct = q.questionText ?? q.text ?? q.question ?? q.prompt ?? q.title ?? q.body ?? q.stem ?? q.statement ?? q.content ?? q.description ?? q.question_text ?? null;
+      if (direct && typeof direct === 'string' && direct.trim().length > 0) return direct.trim();
+      let best = '';
+      for (const [k, v] of Object.entries(q)) {
+        if (typeof v === 'string' && !TEXT_KEY_BLACKLIST.has(k) && v.length > best.length) best = v;
+      }
+      return best.trim();
+    };
+
+    const heuristicOptionText = (opt) => {
+      if (!opt) return '';
+      const direct = opt.text ?? opt.option_text ?? opt.content ?? opt.label ?? opt.body ?? opt.value ?? opt.answer ?? opt.description ?? null;
+      if (direct && typeof direct === 'string' && direct.trim().length > 0) return direct.trim();
+      let best = '';
+      for (const [k, v] of Object.entries(opt)) {
+        if (typeof v === 'string' && !['id', 'isCorrect', 'correct', 'is_correct', 'order', 'score'].includes(k) && v.length > best.length) best = v;
+      }
+      return best.trim();
+    };
+
+    const normalizeQuestion = (q) => {
+      const opts = Array.isArray(q.options) ? q.options : (Array.isArray(q.choices) ? q.choices : []);
+      const normalizedOptions = opts.map((opt, idx) => ({
+        ...opt,
+        id: opt.id || `opt-${q.id || q._id || `q${Date.now()}`}-${idx + 1}`,
+        text: heuristicOptionText(opt),
+        isCorrect: typeof opt.isCorrect === 'boolean' ? opt.isCorrect : !!opt.correct || !!opt.is_correct || !!opt.right || !!opt.isRight || false
+      }));
+      return {
+        ...q,
+        id: q.id || q._id,
+        quizId: q.quizId || q.quiz_id || quizId,
+        questionText: heuristicQuestionText(q),
+        marks: Number(q.marks || q.points || q.score || q.weight || 2) || 2,
+        difficulty: q.difficulty || q.level || 'Easy',
+        explanation: q.explanation || q.explain || q.explanationText || q.solution || '',
+        options: normalizedOptions
+      };
+    };
+
     try {
       const response = await fetch(`/api/quizzes/${quizId}/questions`);
       if (response.ok) {
         const serverQuestions = await response.json();
+        console.log('[getQuestionsForQuiz] SERVER RAW:', serverQuestions);
         const localQuestions = getStorage('questions', INITIAL_QUESTIONS).filter(q => q.quizId !== quizId);
-        const merged = [...localQuestions, ...serverQuestions];
+        const normalizedServer = serverQuestions.map(normalizeQuestion);
+        const merged = [...localQuestions, ...normalizedServer];
         setStorage('questions', merged);
-        return serverQuestions;
+        console.log('[getQuestionsForQuiz] SERVER NORMALIZED:', normalizedServer);
+
+        if (normalizedServer.length === 0) {
+          console.log(`[getQuestionsForQuiz] Server returned 0 questions. Triggering Gemini AI auto-generation...`);
+          try {
+            const allQuizzes = getStorage('quizzes', INITIAL_QUIZZES);
+            const quizObj = allQuizzes.find(q => q.id === quizId || q.quiz_id === quizId);
+            const topic = quizObj?.title || quizObj?.name || quizObj?.description || quizId;
+            const difficulty = quizObj?.difficulty || 'Intermediate';
+            const desiredCount = Number(quizObj?.questionsCount) >= 5 ? Number(quizObj.questionsCount) : (
+              difficulty === 'Beginner' || difficulty === 'Easy' ? 8 :
+              difficulty === 'Advanced' ? 12 : 10
+            );
+            console.log(`[getQuestionsForQuiz] Generating ${desiredCount} AI questions on topic="${topic}" difficulty="${difficulty}"`);
+            const generated = await api.generateAiQuestions(topic, difficulty, desiredCount);
+            for (let gq of generated) {
+              await api.saveQuestion({
+                quizId,
+                questionText: gq.questionText || gq.text || gq.question || '',
+                marks: gq.marks || 2,
+                difficulty: gq.difficulty || difficulty,
+                explanation: gq.explanation || '',
+                options: (gq.options || []).map((o, oi) => ({
+                  id: `opt-ai-${Date.now()}-${oi}-${Math.random().toString(36).slice(2,6)}`,
+                  text: o.text || o.option_text || o.content || '',
+                  isCorrect: typeof o.isCorrect === 'boolean' ? o.isCorrect : !!o.correct || !!o.is_correct
+                }))
+              });
+            }
+            const refetched = getStorage('questions', INITIAL_QUESTIONS).filter(q => q.quizId === quizId);
+            const regenNormalized = refetched.map(normalizeQuestion);
+            console.log('[getQuestionsForQuiz] AI generated and saved questions:', regenNormalized);
+            if (regenNormalized.length > 0) return regenNormalized;
+          } catch (aiErr) {
+            console.error('[getQuestionsForQuiz] AI auto-generation after empty server response failed:', aiErr);
+          }
+        }
+
+        return normalizedServer;
       }
     } catch (e) {
       console.warn('Backend getQuestionsForQuiz sync warning:', e.message);
     }
 
     const questions = getStorage('questions', INITIAL_QUESTIONS);
-    const quizQuestions = questions.filter(q => q.quizId === quizId);
-    return quizQuestions.map(q => ({
-      ...q,
-      options: (q.options || []).map((opt, idx) => ({
-        ...opt,
-        id: opt.id || `opt-${q.id}-${idx + 1}`,
-        text: opt.text || opt.option_text || ''
-      }))
-    }));
+    const quizQuestions = questions.filter(q => (q.quizId === quizId || q.quiz_id === quizId));
+    const normalizedLocal = quizQuestions.map(normalizeQuestion);
+    console.log('[getQuestionsForQuiz] LOCAL NORMALIZED:', normalizedLocal);
+
+    if (normalizedLocal.length === 0) {
+      console.log(`[getQuestionsForQuiz] No questions found for quiz ${quizId}. Triggering Gemini AI auto-generation...`);
+      try {
+        const allQuizzes = getStorage('quizzes', INITIAL_QUIZZES);
+        const quizObj = allQuizzes.find(q => q.id === quizId || q.quiz_id === quizId);
+        const topic = quizObj?.title || quizObj?.name || quizObj?.description || quizId;
+        const difficulty = quizObj?.difficulty || 'Intermediate';
+        const desiredCount = Number(quizObj?.questionsCount) >= 5 ? Number(quizObj.questionsCount) : (
+          difficulty === 'Beginner' || difficulty === 'Easy' ? 8 :
+          difficulty === 'Advanced' ? 12 : 10
+        );
+        console.log(`[getQuestionsForQuiz] Generating ${desiredCount} AI questions on topic="${topic}" difficulty="${difficulty}"`);
+        const generated = await api.generateAiQuestions(topic, difficulty, desiredCount);
+        for (let gq of generated) {
+          await api.saveQuestion({
+            quizId,
+            questionText: gq.questionText || gq.text || gq.question || '',
+            marks: gq.marks || 2,
+            difficulty: gq.difficulty || difficulty,
+            explanation: gq.explanation || '',
+            options: (gq.options || []).map((o, oi) => ({
+              id: `opt-ai-${Date.now()}-${oi}-${Math.random().toString(36).slice(2,6)}`,
+              text: o.text || o.option_text || o.content || '',
+              isCorrect: typeof o.isCorrect === 'boolean' ? o.isCorrect : !!o.correct || !!o.is_correct
+            }))
+          });
+        }
+        const refetchedQuestions = getStorage('questions', INITIAL_QUESTIONS).filter(q => q.quizId === quizId);
+        const regenerated = refetchedQuestions.map(normalizeQuestion);
+        console.log('[getQuestionsForQuiz] AI generated and saved questions:', regenerated);
+        if (regenerated.length > 0) return regenerated;
+      } catch (aiErr) {
+        console.error('[getQuestionsForQuiz] AI auto-generation failed:', aiErr);
+      }
+    }
+
+    return normalizedLocal;
   },
 
   saveQuestion: async (questionData) => {
     const questions = getStorage('questions', INITIAL_QUESTIONS);
     const qId = questionData.id || `q-${Date.now()}`;
-    const formattedOptions = (questionData.options || []).map((opt, idx) => ({
+    const rawQT = questionData.questionText ?? questionData.text ?? questionData.question ?? questionData.prompt ?? questionData.body ?? '';
+    const canonicalQuestionText = typeof rawQT === 'string' ? rawQT.trim() : '';
+    const formattedOptions = (questionData.options || questionData.choices || []).map((opt, idx) => ({
       id: opt.id || `opt-${qId}-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
-      text: opt.text || opt.option_text || '',
-      isCorrect: !!opt.isCorrect
+      text: (opt.text ?? opt.option_text ?? opt.content ?? opt.label ?? opt.value ?? '').toString().trim(),
+      isCorrect: typeof opt.isCorrect === 'boolean' ? opt.isCorrect : !!opt.correct || !!opt.is_correct
     }));
 
     const newQuestion = {
       ...questionData,
       id: qId,
+      questionText: canonicalQuestionText,
+      text: canonicalQuestionText,
+      question: canonicalQuestionText,
       options: formattedOptions
     };
 
@@ -376,16 +502,49 @@ export const api = {
     const attempts = getStorage('attempts', INITIAL_ATTEMPTS);
     const users = getStorage('users', INITIAL_USERS);
 
+    const BLACKLIST_Q = new Set(['id','quizId','quiz_id','difficulty','status','createdAt','updatedAt','categoryId','category_id','type','format','explanation','explain','marks','points','score','order','sort','userId','user_id','authorId','author_id']);
+    const normalizeQText = (q) => {
+      if (!q) return '';
+      const d = q.questionText ?? q.text ?? q.question ?? q.prompt ?? q.title ?? q.body ?? q.stem ?? q.statement ?? q.content ?? q.description ?? q.question_text ?? '';
+      if (d && String(d).trim()) return String(d).trim();
+      let best = '';
+      for (const [k,v] of Object.entries(q)) {
+        if (typeof v==='string' && !BLACKLIST_Q.has(k) && v.length > best.length) best = v;
+      }
+      return best.trim();
+    };
+    const normalizeOText = (o) => {
+      if (!o) return '';
+      const d = o.text ?? o.option_text ?? o.content ?? o.label ?? o.body ?? o.value ?? o.answer ?? o.description ?? '';
+      if (d && String(d).trim()) return String(d).trim();
+      let best = '';
+      for (const [k,v] of Object.entries(o)) {
+        if (typeof v==='string' && !['id','isCorrect','correct','is_correct','order','score'].includes(k) && v.length>best.length) best=v;
+      }
+      return best.trim();
+    };
+
+    const normalizeQuestion = (q) => {
+      const opts = Array.isArray(q.options) ? q.options : (Array.isArray(q.choices) ? q.choices : []);
+      return {
+        ...q,
+        questionText: normalizeQText(q),
+        marks: Number(q.marks || q.points || q.score || q.weight || 2) || 2,
+        explanation: q.explanation || q.explain || q.explanationText || q.solution || '',
+        options: opts.map((opt, idx) => ({
+          ...opt,
+          id: opt.id || `opt-${q.id || q._id}-${idx + 1}`,
+          text: normalizeOText(opt),
+          isCorrect: typeof opt.isCorrect === 'boolean' ? opt.isCorrect : !!opt.correct || !!opt.is_correct || !!opt.right || !!opt.isRight || false
+        }))
+      };
+    };
+
+    const normalizeString = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+
     const quiz = quizzes.find(q => q.id === quizId);
     const rawQuestions = questions.filter(q => q.quizId === quizId);
-    const quizQuestions = rawQuestions.map(q => ({
-      ...q,
-      options: (q.options || []).map((opt, idx) => ({
-        ...opt,
-        id: opt.id || `opt-${q.id}-${idx + 1}`,
-        text: opt.text || opt.option_text || ''
-      }))
-    }));
+    const quizQuestions = rawQuestions.map(normalizeQuestion);
 
     const user = users.find(u => u.id === userId);
 
@@ -403,12 +562,21 @@ export const api = {
         return {
           questionId: q.id,
           selectedOptionId: null,
+          selectedOptionText: null,
+          correctOptionId: (q.options.find(o => o.isCorrect) || {}).id || null,
+          correctOptionText: (q.options.find(o => o.isCorrect) || {}).text || '',
           isCorrect: false
         };
       }
 
       const correctOpt = q.options.find(o => o.isCorrect);
-      const isCorrect = correctOpt && (correctOpt.id === userSelId || correctOpt.text === userSelId);
+      const userSelOpt = q.options.find(o => o.id === userSelId) || q.options.find(o => normalizeString(o.text) === normalizeString(userSelId));
+      const selectedOptText = userSelOpt ? userSelOpt.text : (typeof userSelId === 'string' && !(userSelId.startsWith('opt-') || userSelId.startsWith('opt_')) ? userSelId : '');
+      const isCorrect = correctOpt && userSelOpt && (
+        correctOpt.id === userSelOpt.id ||
+        normalizeString(correctOpt.text) === normalizeString(userSelOpt.text)
+      );
+
       if (isCorrect) {
         correctCount++;
         obtainedMarks += q.marks || 2;
@@ -418,8 +586,11 @@ export const api = {
 
       return {
         questionId: q.id,
-        selectedOptionId: userSelId,
-        isCorrect
+        selectedOptionId: (userSelOpt || {}).id || userSelId,
+        selectedOptionText: selectedOptText || '',
+        correctOptionId: correctOpt ? correctOpt.id : null,
+        correctOptionText: correctOpt ? correctOpt.text : '',
+        isCorrect: !!isCorrect
       };
     });
 
@@ -562,6 +733,59 @@ export const api = {
 
   // Gemini AI Integration
   generateAiQuestions: async (topic, difficulty = 'Intermediate', count = 3) => {
+    const validateAndNormalizeAiOutput = (rawQuestions) => {
+      if (!Array.isArray(rawQuestions)) return [];
+      return rawQuestions.map((q, qi) => {
+        const questionText = (q.questionText || q.text || q.question || '').toString().trim() || `Question ${qi + 1} on ${topic}`;
+        const marks = Number(q.marks || q.points || 2) || 2;
+        const expl = (q.explanation || q.explain || '').toString().trim() || `Explanation for ${questionText}`;
+        let opts = Array.isArray(q.options) ? q.options : (Array.isArray(q.choices) ? q.choices : []);
+        opts = opts.map((o, oi) => ({
+          id: o.id || `opt-ai-${Date.now()}-${qi}-${oi}`,
+          text: (o.text || o.option_text || o.content || o.label || `Option ${String.fromCharCode(65 + oi)}`).toString().trim(),
+          isCorrect: typeof o.isCorrect === 'boolean' ? o.isCorrect : !!o.correct || !!o.is_correct
+        }));
+        // Guarantee exactly 1 correct option (first correct wins, default first option if none correct)
+        const correctIdx = opts.findIndex(o => o.isCorrect);
+        if (correctIdx === -1 && opts.length > 0) {
+          opts[0].isCorrect = true;
+        } else if (correctIdx > 0) {
+          opts.forEach((o, i) => { o.isCorrect = (i === correctIdx); });
+        }
+        // Guarantee exactly 4 options
+        const fillers = [
+          { text: `All of the above`, isCorrect: false },
+          { text: `None of the above`, isCorrect: false },
+          { text: `Not applicable`, isCorrect: false },
+          { text: `Insufficient information`, isCorrect: false }
+        ];
+        let fi = 0;
+        while (opts.length < 4) {
+          opts.push({
+            id: `opt-ai-${Date.now()}-${qi}-pad-${fi}`,
+            text: fillers[fi % fillers.length],
+            isCorrect: false
+          });
+          fi++;
+        }
+        if (opts.length > 4) {
+          // Keep the correct one + 3 others
+          const correctOne = opts.find(o => o.isCorrect) || opts[0];
+          const others = opts.filter(o => o !== correctOne).slice(0, 3);
+          opts = [correctOne, ...others];
+          // Re-ensure exactly one is correct after slice
+          opts.forEach((o, i) => { o.isCorrect = (i === 0); });
+        }
+        return {
+          questionText,
+          marks,
+          difficulty: q.difficulty || difficulty,
+          explanation: expl,
+          options: opts
+        };
+      }).filter(q => q && q.questionText && q.options.length === 4);
+    };
+
     try {
       const response = await fetch('/api/admin/ai/generate-questions', {
         method: 'POST',
@@ -573,7 +797,10 @@ export const api = {
       });
       if (response.ok) {
         const data = await response.json();
-        if (data.questions && data.questions.length > 0) return data.questions;
+        if (data.questions && data.questions.length > 0) {
+          const normalized = validateAndNormalizeAiOutput(data.questions);
+          if (normalized.length > 0) return normalized.slice(0, count);
+        }
       }
     } catch (e) {
       console.warn('Backend API AI call warning:', e.message);
@@ -641,10 +868,10 @@ export const api = {
         marks: 2,
         difficulty: difficulty,
         explanation: tmpl.explanation,
-        options: tmpl.options
+        options: tmpl.options.map((o, oi) => ({ ...o, id: `opt-ai-fallback-${Date.now()}-${i}-${oi}` }))
       });
     }
-    return results;
+    return validateAndNormalizeAiOutput(results);
   },
 
   parsePdfQuestionPaper: async (paperText) => {

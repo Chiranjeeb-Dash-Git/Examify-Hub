@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AnimatedFluidBackground } from '../../components/landing/AnimatedFluidBackground';
+import { HudAdminLayout } from '../../components/HudAdminLayout';
 import { useQuiz } from '../../context/QuizContext';
 import { api } from '../../services/api';
 import { motion } from 'motion/react';
@@ -74,7 +74,8 @@ export const AdminCategoriesPage = () => {
   };
 
   return (
-    <div className="min-h-screen py-8 pt-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
+    <HudAdminLayout>
+    <div className="max-w-5xl mx-auto space-y-8">
       <div className="space-y-6">
         {/* Header Title Bar */}
         <div className="liquid-glass rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-white/10 backdrop-blur-xl">
@@ -219,5 +220,6 @@ export const AdminCategoriesPage = () => {
         </div>
       )}
     </div>
+    </HudAdminLayout>
   );
 };

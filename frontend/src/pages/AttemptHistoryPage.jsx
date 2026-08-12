@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
-import { History, Award, Clock, ArrowRight } from 'lucide-react';
+import { HudPlayerLayout } from '../components/HudPlayerLayout';
+import { History, Eye, ShieldAlert } from 'lucide-react';
 
 export const AttemptHistoryPage = () => {
   const { user } = useAuth();
@@ -25,81 +26,109 @@ export const AttemptHistoryPage = () => {
     loadHistory();
   }, [user]);
 
-  return (
-    <div className="min-h-screen bg-[#050505] py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8 text-white font-body">
-      {/* Header */}
-      <div className="space-y-1">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-mono text-[11px] tracking-[0.25em] text-white/70 uppercase">
-            ✦ TELEMETRY AUDIT LOGS
-          </span>
-        </div>
-        <h1 className="font-display font-extrabold text-3xl sm:text-4xl text-white tracking-tight uppercase">
-          Quiz Attempt <span className="text-white/80">History Log</span>
-        </h1>
-        <p className="text-sm text-white/60 font-mono">
-          Review your previous assessment performances and candidate telemetry
-        </p>
-      </div>
+  const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
-      {/* History Table */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 bg-[#0a0a0c] backdrop-blur-xl">
+  return (
+    <HudPlayerLayout>
+      {/* ── HERO HEADER ── */}
+      <header className="relative mb-12">
+        <div className="absolute -top-10 right-0 hidden xl:block float-y">
+          <div className="w-32 h-32 diamond bg-gradient-to-br from-cyan-500/15 to-violet-600/15 border border-cyan-400/20 glow-cyan flex items-center justify-center">
+            <History className="w-10 h-10 text-cyan-300/80" style={{ transform: 'rotate(-45deg)' }} />
+          </div>
+        </div>
+        <div className="flex items-center gap-4 mb-4">
+          <div style={{ height: 1, width: 56, background: 'linear-gradient(90deg, #22d3ee, transparent)' }} />
+          <span className="font-orbitron text-neon-cyan uppercase" style={{ fontSize: 11, letterSpacing: '0.5em' }}>Telemetry Audit Logs</span>
+          <span className="pulse-dot" />
+        </div>
+        <h1 className="font-orbitron font-black leading-none mb-4" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}>
+          <span className="chrome-text">ATTEMPT</span> <span className="grad-neon" style={{ filter: 'drop-shadow(0 0 24px rgba(168,85,247,.5))' }}>HISTORY LOG</span>
+        </h1>
+        <p className="text-zinc-400 text-lg tracking-wide max-w-2xl">
+          Review your previous assessment performances and candidate telemetry logs from the arena.
+        </p>
+      </header>
+
+      <div className="hex-divider mb-10" />
+
+      {/* ── HISTORY TELEMETRY TABLE ── */}
+      <section className="metal clip-hud overflow-hidden brackets">
+        <div className="shine" />
+        <div className="p-6 border-b border-white/5">
+          <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
+            <History className="w-4 h-4 text-neon-cyan" />
+            <span style={{ color: '#fff' }}>ATTEMPT METRICS REGISTRY</span>
+          </h3>
+        </div>
+
         {loading ? (
-          <div className="text-center py-12 text-white/40 font-mono text-xs">Loading history logs...</div>
+          <div className="text-center py-16 font-orbitron text-xs tracking-widest text-zinc-500">
+            LOADING TELEMETRY LOGS...
+          </div>
         ) : attempts.length === 0 ? (
-          <div className="text-center py-12 space-y-4">
-            <History className="h-10 w-10 text-white/40 mx-auto" />
-            <h3 className="text-lg font-bold text-white">No Previous Attempts Found</h3>
-            <p className="text-xs text-white/60 font-mono">Initiate an assessment directive to log attempt metrics.</p>
-            <Link to="/quizzes" className="inline-block px-5 py-2.5 rounded-full bg-white text-black font-mono text-xs font-bold uppercase tracking-wider hover:bg-white/90 shadow-lg shadow-white/10 transition-all">
-              Explore Quizzes
+          <div className="text-center py-16 space-y-4">
+            <div className="w-12 h-12 diamond bg-rose-500/10 border border-rose-400/30 flex items-center justify-center mx-auto mb-4">
+              <ShieldAlert className="w-6 h-6 text-rose-300" style={{ transform: 'rotate(-45deg)' }} />
+            </div>
+            <h3 className="font-orbitron text-sm tracking-widest text-white uppercase">No Telemetry Recorded</h3>
+            <p className="text-zinc-500 text-xs">Initiate an assessment directive to log attempt metrics.</p>
+            <Link to="/quizzes" style={{ textDecoration: 'none' }}>
+              <button className="btn-steel clip-hud-sm px-6 py-2.5 font-orbitron text-[10px] tracking-[.2em] font-bold">
+                EXPLORE QUIZZES
+              </button>
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-white">
-              <thead className="text-xs font-mono uppercase text-white/40 border-b border-white/10">
+          <div style={{ overflowX: 'auto' }}>
+            <table className="w-full hud-tbl">
+              <thead>
                 <tr>
-                  <th className="py-3.5 px-4">Date</th>
-                  <th className="py-3.5 px-4">Quiz Title</th>
-                  <th className="py-3.5 px-4">Score</th>
-                  <th className="py-3.5 px-4">Time Taken</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Details</th>
+                  <th>Date Completed</th>
+                  <th>Quiz Mission</th>
+                  <th>Score</th>
+                  <th>Time Taken</th>
+                  <th>Status</th>
+                  <th />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/5 font-mono text-xs">
+              <tbody>
                 {attempts.map((att) => (
-                  <tr key={att.id} className="hover:bg-white/5 transition-colors">
-                    <td className="py-4 px-4 text-white/60">
+                  <tr key={att.id}>
+                    <td style={{ color: '#71717a' }}>
                       {new Date(att.completedAt).toLocaleDateString(undefined, {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric'
                       })}
                     </td>
-                    <td className="py-4 px-4 font-body font-bold text-white">{att.quizTitle}</td>
-                    <td className="py-4 px-4 font-bold text-white">{att.percentage}%</td>
-                    <td className="py-4 px-4 text-white/60">{att.timeTaken}</td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-mono ${
-                          att.status === 'PASSED'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : 'bg-red-500/20 text-red-400 border border-red-500/30'
-                        }`}
-                      >
-                        {att.status}
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="diamond flex items-center justify-center font-orbitron font-black text-black"
+                          style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', fontSize: 10 }}>
+                          <span style={{ transform: 'rotate(-45deg)' }}>QU</span>
+                        </div>
+                        <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>{att.quizTitle}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="font-orbitron font-black text-white">
+                        {att.percentage}%
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-right">
-                      <Link
-                        to={`/quiz/result/${att.id}`}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 border border-white/15 text-white hover:bg-white hover:text-black font-mono text-xs uppercase font-bold tracking-wider transition-all group"
-                      >
-                        <span>View Breakdown</span>
-                        <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform" />
+                    <td style={{ color: '#71717a' }}>{att.timeTaken}</td>
+                    <td>
+                      <span className="hud-badge" style={{
+                        background: att.status === 'PASSED' ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)',
+                        color: att.status === 'PASSED' ? '#6ee7b7' : '#fca5a5',
+                        border: att.status === 'PASSED' ? '1px solid rgba(52,211,153,.25)' : '1px solid rgba(239,68,68,.25)'
+                      }}>
+                        {att.status === 'PASSED' ? '✓ Passed' : '✕ Failed'}
+                      </span>
+                    </td>
+                    <td>
+                      <Link to={`/quiz/result/${att.id}`}>
+                        <Eye className="w-4 h-4 text-zinc-500 hover:text-white transition-colors" />
                       </Link>
                     </td>
                   </tr>
@@ -108,7 +137,11 @@ export const AttemptHistoryPage = () => {
             </table>
           </div>
         )}
-      </div>
-    </div>
+        <span className="bk bk-tl" />
+        <span className="bk bk-br" />
+      </section>
+    </HudPlayerLayout>
   );
 };
+
+export default AttemptHistoryPage;

@@ -99,10 +99,10 @@ export function App() {
                   }
                 />
                 <Route
-                  path="/admin/analytics"
+                  path="/admin/leaderboard"
                   element={
                     <ProtectedRoute requireAdmin={true}>
-                      <AdminDashboardPage />
+                      <LeaderboardPage />
                     </ProtectedRoute>
                   }
                 />

@@ -1,74 +1,127 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { LayoutDashboard, Users, BookOpen, Layers, PlusCircle, ShieldAlert } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import {
+  LayoutDashboard, Users, BookOpen, Layers, PlusCircle,
+  Zap, ChevronRight, LogOut, Shield, ListChecks
+} from 'lucide-react';
 
 export const AdminSidebar = () => {
   const location = useLocation();
-  const isActive = (path) => location.pathname === path;
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const isActive = (path) => location.pathname === path || (path !== '/admin' && location.pathname.startsWith(path));
+  const initials = (n = '') => n.split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
 
   const navItems = [
-    { path: '/admin', label: 'Platform Analytics', icon: LayoutDashboard },
-    { path: '/admin/quizzes', label: 'Quiz Management', icon: BookOpen },
-    { path: '/admin/users', label: 'Student Management', icon: Users },
-    { path: '/admin/categories', label: 'Categories', icon: Layers },
+    { path: '/admin',            label: 'Platform Analytics', icon: LayoutDashboard },
+    { path: '/admin/quizzes',    label: 'Quiz Management',    icon: BookOpen },
+    { path: '/admin/users',      label: 'Student Management', icon: Users },
+    { path: '/admin/categories', label: 'Categories',         icon: Layers },
+    { path: '/admin/attempts',   label: 'Attempts',           icon: ListChecks },
   ];
 
   return (
-    <aside className="w-64 liquid-glass border-r border-white/10 p-6 flex flex-col justify-between shrink-0 hidden md:flex min-h-[calc(100vh-5rem)] z-20 my-4 ml-4 rounded-3xl backdrop-blur-xl">
-      <div className="space-y-6">
-        {/* Command Center Title */}
-        <div className="border-b border-white/10 pb-4">
-          <span className="text-[10px] font-mono uppercase tracking-[0.2em] flex items-center gap-1.5 text-white/80">
-            <ShieldAlert className="h-3.5 w-3.5 text-white" />
-            ADMIN GATEWAY
-          </span>
-          <h2 
-            className="text-xl font-medium text-white mt-1 bg-gradient-to-b from-white via-white/95 to-white/70 bg-clip-text text-transparent"
-            style={{ fontFamily: "'Instrument Serif', serif" }}
-          >
-            Examify Hub Admin
-          </h2>
+    <aside
+      className="metal shrink-0 hidden md:flex flex-col justify-between"
+      style={{
+        width: 260,
+        minHeight: 'calc(100vh - 70px)',
+        padding: 24,
+        borderTop: 0,
+        borderLeft: 0,
+        borderBottom: 0,
+        position: 'sticky',
+        top: 70,
+      }}
+    >
+      {/* top section */}
+      <div>
+        {/* header */}
+        <div style={{ paddingBottom: 20, marginBottom: 20, borderBottom: '1px solid rgba(255,255,255,.07)' }}>
+          <div className="flex items-center gap-2" style={{ marginBottom: 8 }}>
+            <Shield className="w-3.5 h-3.5" style={{ color: '#22d3ee' }} />
+            <span className="font-orbitron" style={{ fontSize: 9, letterSpacing: '0.3em', color: '#71717a', textTransform: 'uppercase' }}>Admin Gateway</span>
+          </div>
+          <div className="font-orbitron font-black" style={{ fontSize: 16, letterSpacing: '0.05em' }}>
+            <span className="chrome-text">QUIZ</span><span className="grad-neon">FORGE</span>
+          </div>
+          <div className="font-orbitron" style={{ fontSize: 9, letterSpacing: '0.3em', color: '#52525b', marginTop: 4 }}>COMMAND CENTER</div>
         </div>
 
-        {/* Navigation Group */}
-        <nav className="space-y-2 text-xs font-medium tracking-wide">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
+        {/* nav */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {navItems.map(({ path, label, icon: Icon }) => {
+            const active = isActive(path);
             return (
-              <Link key={item.path} to={item.path}>
-                <motion.div
-                  whileHover={{ x: 3 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-full transition-all duration-300 ${
-                    active
-                      ? "liquid-glass text-white font-semibold shadow-inner border border-white/30"
-                      : "text-white/70 hover:text-white hover:bg-white/[0.04]"
-                  }`}
+              <Link key={path} to={path} style={{ textDecoration: 'none' }}>
+                <div
+                  className={`clip-hud-sm flex items-center gap-3 transition-all`}
+                  style={{
+                    padding: '10px 14px',
+                    fontFamily: 'Orbitron, sans-serif',
+                    fontSize: 10,
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    cursor: 'pointer',
+                    color: active ? '#22d3ee' : '#71717a',
+                    background: active ? 'rgba(34,211,238,.08)' : 'transparent',
+                    textShadow: active ? '0 0 10px rgba(34,211,238,.6)' : 'none',
+                    borderLeft: active ? '2px solid #22d3ee' : '2px solid transparent',
+                    transition: 'all .25s',
+                  }}
+                  onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#fff'; e.currentTarget.style.background = 'rgba(255,255,255,.04)'; } }}
+                  onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#71717a'; e.currentTarget.style.background = 'transparent'; } }}
                 >
-                  <Icon className={`h-4 w-4 ${active ? "text-white" : "text-white/60"}`} />
-                  <span>{item.label}</span>
-                </motion.div>
+                  <Icon style={{ width: 14, height: 14, flexShrink: 0, color: active ? '#22d3ee' : '#52525b' }} />
+                  <span style={{ flex: 1 }}>{label}</span>
+                  {active && <ChevronRight style={{ width: 10, height: 10 }} />}
+                </div>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      {/* Quick Action Button */}
-      <div className="pt-6 border-t border-white/10">
-        <Link to="/admin/quizzes/new">
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.96 }}
-            className="flex items-center justify-center gap-2 w-full py-3.5 px-4 liquid-glass rounded-full text-xs font-medium text-white hover:opacity-90 transition-all duration-300 cursor-pointer border border-white/20"
+      {/* bottom section */}
+      <div style={{ paddingTop: 20, borderTop: '1px solid rgba(255,255,255,.07)' }}>
+        {/* user pill */}
+        <div className="flex items-center gap-3 clip-hud-sm" style={{ padding: '10px 12px', marginBottom: 12, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)' }}>
+          <div
+            className="diamond flex items-center justify-center font-orbitron font-black text-black"
+            style={{ width: 30, height: 30, background: 'linear-gradient(135deg,#22d3ee,#7c3aed)', fontSize: 9, flexShrink: 0 }}
           >
-            <PlusCircle className="h-4 w-4" />
-            <span>Create New Quiz</span>
-          </motion.button>
+            <span style={{ transform: 'rotate(-45deg)' }}>{user ? initials(user.name) : 'AD'}</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="font-orbitron" style={{ fontSize: 10, letterSpacing: '0.1em', color: '#e4e4e7', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              {user?.name?.toUpperCase() || 'ADMIN'}
+            </div>
+            <div className="font-orbitron text-neon-cyan" style={{ fontSize: 8, letterSpacing: '0.2em' }}>ADMINISTRATOR</div>
+          </div>
+        </div>
+
+        {/* Create quiz CTA */}
+        <Link to="/admin/quizzes/new" style={{ textDecoration: 'none' }}>
+          <button className="btn-neon clip-hud-sm w-full font-orbitron font-bold flex items-center justify-center gap-2"
+            style={{ padding: '11px 16px', fontSize: 10, letterSpacing: '0.2em', color: '#fff', width: '100%', cursor: 'pointer', marginBottom: 8 }}>
+            <PlusCircle style={{ width: 14, height: 14 }} />
+            CREATE NEW QUIZ
+          </button>
         </Link>
+
+        {/* logout */}
+        <button
+          onClick={async () => { await logout(); navigate('/login'); }}
+          className="btn-steel clip-hud-sm w-full font-orbitron flex items-center justify-center gap-2"
+          style={{ padding: '8px 16px', fontSize: 10, letterSpacing: '0.15em', color: '#71717a', width: '100%', cursor: 'pointer' }}
+        >
+          <LogOut style={{ width: 12, height: 12 }} />
+          SIGN OUT
+        </button>
       </div>
     </aside>
   );
 };
+
+export default AdminSidebar;

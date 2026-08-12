@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { AnimatedFluidBackground } from '../../components/landing/AnimatedFluidBackground';
+import { HudAdminLayout } from '../../components/HudAdminLayout';
 import { api } from '../../services/api';
 import { motion } from 'motion/react';
 import { ArrowLeft, Plus, Edit, Trash2, CheckCircle2, Sparkles, Loader2 } from 'lucide-react';
@@ -156,7 +156,8 @@ export const AdminQuestionsPage = () => {
   };
 
   return (
-    <div className="min-h-screen py-8 pt-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-10">
+    <HudAdminLayout>
+    <div className="max-w-5xl mx-auto space-y-8">
       <div className="space-y-6">
         <Link to="/admin/quizzes" className="inline-flex items-center gap-2 text-xs font-mono text-white/60 hover:text-white transition-colors uppercase tracking-wider">
           <ArrowLeft className="h-4 w-4" />
@@ -377,5 +378,6 @@ export const AdminQuestionsPage = () => {
         </div>
       )}
     </div>
+    </HudAdminLayout>
   );
 };

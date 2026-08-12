@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useQuiz } from '../context/QuizContext';
 import { QuizCard } from '../components/QuizCard';
+import { HudPlayerLayout } from '../components/HudPlayerLayout';
 import { api } from '../services/api';
-import { motion } from 'motion/react';
-import { Award, Zap, TrendingUp, CheckCircle, Clock, ArrowRight, Activity, Flame, Shield, Swords, Terminal, Box } from 'lucide-react';
+import { gsap } from 'gsap';
+import { Award, Zap, TrendingUp, Clock, Activity, Flame, Swords, Box, Shield, Eye } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 export const StudentDashboard = () => {
@@ -19,6 +20,8 @@ export const StudentDashboard = () => {
     totalAttempts: user?.quizzesAttempted || 0,
     highestScore: user?.highestScore || 0
   });
+
+  const xpFillRef = useRef(null);
 
   useEffect(() => {
     const loadUserStats = async () => {
@@ -47,13 +50,24 @@ export const StudentDashboard = () => {
     loadUserStats();
   }, [user]);
 
+  useEffect(() => {
+    // animate XP bar after stats load
+    if (xpFillRef.current) {
+      setTimeout(() => {
+        if (xpFillRef.current) {
+          xpFillRef.current.classList.add('animated');
+        }
+      }, 300);
+    }
+  }, [stats]);
+
   // Gamified Level System
   const level = Math.floor(stats.quizzesPassed / 3) + 1;
   const currentLevelXp = stats.quizzesPassed % 3;
   const xpNeeded = 3;
   const xpPercentage = (currentLevelXp / xpNeeded) * 100;
 
-  // Mock activity data for heatmap
+  // Activity data
   const activityData = [
     { day: 'Mon', hours: 2.5, type: 'iron' },
     { day: 'Tue', hours: 4.1, type: 'gold' },
@@ -64,291 +78,289 @@ export const StudentDashboard = () => {
     { day: 'Sun', hours: 4.0, type: 'coal' }
   ];
 
-  // Map day types to voxel themes
   const colorMap = {
     iron: '#a1a1aa',
     gold: '#fbbf24',
-    diamond: '#00ffff',
-    emerald: '#55ff55',
+    diamond: '#22d3ee',
+    emerald: '#34d399',
     redstone: '#f87171',
-    coal: '#4b5563'
-  };
-
-  // Scroll animations configuration (triggers up and down scroll transitions)
-  const scrollReveal = {
-    initial: { opacity: 0, y: 60, scale: 0.96 },
-    whileInView: { opacity: 1, y: 0, scale: 1 },
-    viewport: { once: false, amount: 0.12 },
-    transition: { type: 'spring', stiffness: 70, damping: 14 }
+    coal: '#52525b'
   };
 
   return (
-    <div className="min-h-screen bg-[#060608] voxel-grid py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-10 selection:bg-[#55ff55] selection:text-black">
-      {/* Gamified briefing banner */}
-      <motion.div 
-        {...scrollReveal}
-        className="voxel-card-3d p-6 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6 border-2 border-[#1c1c24] bg-gradient-to-r from-[#0d0d11] to-[#121217]"
-      >
-        <div className="space-y-3 relative z-10 flex-grow max-w-2xl">
-          <div className="flex items-center gap-3">
-            <span className="px-2 py-0.5 text-[10px] font-mono text-[#55ff55] border border-[#55ff55]/30 bg-[#55ff55]/5 uppercase tracking-wider font-extrabold rounded-none">
-              COMMANDER STATUS ACTIVE
-            </span>
-            <span className="flex items-center gap-1 text-[10px] font-mono text-white/50">
-              <Shield className="w-3.5 h-3.5" />
-              SECURE SECTOR 7A
-            </span>
-          </div>
-          
-          <h1 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight uppercase font-mono">
-            Welcome, <span className="text-[#55ff55] drop-shadow-[0_0_8px_rgba(85,255,85,0.3)]">{user?.name || 'VoxelCommander'}</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-white/60 font-mono">
-            Directives loaded. Voxel engine standing by. Execute assessments to gather XP.
-          </p>
-
-          {/* Minecraft Style XP HUD */}
-          <div className="space-y-1.5 pt-2">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-white/80 font-bold flex items-center gap-1.5">
-                <Swords className="w-4 h-4 text-[#55ff55]" />
-                LEVEL {level} EXPLORER
+    <HudPlayerLayout>
+      {/* ── BARK BANNER / HERO STATUS ── */}
+      <section className="brackets metal clip-hud p-6 mb-8 relative">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="space-y-3 flex-grow max-w-2xl">
+            <div className="flex items-center gap-3">
+              <span className="hud-badge bg-emerald-500/10 text-emerald-300 border border-emerald-400/20">
+                <span className="pulse-dot" /> COMMANDER STATUS ACTIVE
               </span>
-              <span className="text-[#55ff55] font-bold">{currentLevelXp} / {xpNeeded} XP</span>
+              <span className="flex items-center gap-1 text-[10px] font-orbitron tracking-widest text-zinc-500">
+                <Shield className="w-3.5 h-3.5 text-zinc-600" />
+                SECURE SECTOR 7A
+              </span>
             </div>
-            
-            {/* Voxel XP Bar */}
-            <div className="w-full h-5 voxel-xp-bar relative p-0.5 overflow-hidden flex items-center">
-              <div 
-                className="h-full voxel-xp-fill transition-all duration-700 ease-out" 
-                style={{ width: `${xpPercentage}%` }}
-              />
-            </div>
-            <p className="text-[10px] font-mono text-white/40">
-              {stats.quizzesPassed % 3 === 0 ? 'Directive required to rank up' : `${xpNeeded - currentLevelXp} assessments to Level ${level + 1}`}
+
+            <h1 className="font-orbitron font-black text-3xl sm:text-5xl leading-none text-white uppercase tracking-tight">
+              Welcome, <span className="grad-neon" style={{ filter: 'drop-shadow(0 0 16px rgba(168,85,247,.45))' }}>{user?.name || 'VoxelCommander'}</span>
+            </h1>
+            <p className="text-sm text-zinc-400">
+              Directives loaded. Voxel engine standing by. Execute assessments to gather XP.
             </p>
-          </div>
-        </div>
 
-        <div className="flex flex-col items-center justify-center p-4 bg-[#14141a]/60 border border-white/5 min-w-[160px] relative">
-          <div className="absolute top-1 right-1 h-1.5 w-1.5 bg-[#55ff55] animate-ping" />
-          <Box className="w-8 h-8 text-[#55ff55] mb-2 animate-bounce" />
-          <span className="text-[10px] font-mono text-white/50 uppercase">Current Rank</span>
-          <span className="text-sm font-bold text-white font-mono uppercase tracking-wider drop-shadow-md text-center">Elite Vanguard</span>
-        </div>
-      </motion.div>
+            {/* XP PROGRESS HUT */}
+            <div className="space-y-1.5 pt-2">
+              <div className="flex items-center justify-between text-xs font-orbitron font-bold">
+                <span className="text-zinc-300 flex items-center gap-1.5">
+                  <Swords className="w-4 h-4 text-neon-cyan" />
+                  LEVEL {level} EXPLORER
+                </span>
+                <span className="text-neon-cyan">{currentLevelXp} / {xpNeeded} XP</span>
+              </div>
 
-      {/* Intelligence Metric Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        {/* Card 1: Accuracy Core Reactor */}
-        <motion.div 
-          {...scrollReveal}
-          className="voxel-card-3d ore-glow-diamond p-6 flex flex-col justify-between relative overflow-hidden bg-[#0d0d11]"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-[#00ffff] uppercase tracking-wider font-bold">
-              ACCURACY REACTOR
-            </span>
-            <Zap className="h-5 w-5 text-[#00ffff]" />
-          </div>
-
-          <div className="my-6 flex items-center justify-center relative">
-            <svg className="w-36 h-36 transform -rotate-90">
-              <circle
-                cx="72"
-                cy="72"
-                r="56"
-                stroke="currentColor"
-                strokeWidth="10"
-                className="text-white/5"
-                fill="transparent"
-              />
-              <circle
-                cx="72"
-                cy="72"
-                r="56"
-                stroke="#00ffff"
-                strokeWidth="10"
-                strokeDasharray={351.8}
-                strokeDashoffset={351.8 - (351.8 * stats.avgScore) / 100}
-                strokeLinecap="square"
-                className="transition-all duration-1000 ease-out"
-                fill="transparent"
-                style={{ filter: 'drop-shadow(0 0 4px rgba(0, 255, 255, 0.5))' }}
-              />
-            </svg>
-            <div className="absolute flex flex-col items-center">
-              <span className="text-4xl font-extrabold text-white font-mono">{stats.avgScore}%</span>
-              <span className="text-[9px] font-mono text-[#00ffff] uppercase tracking-widest">DIAGNOSTIC OK</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-center gap-1.5 text-xs text-[#00ffff] font-mono border-t border-[#00ffff]/10 pt-3">
-            <TrendingUp className="h-3.5 w-3.5" />
-            <span>+5% calibration gain this cycle</span>
-          </div>
-        </motion.div>
-
-        {/* Card 2: Inventory Totem */}
-        <motion.div 
-          {...scrollReveal}
-          className="voxel-card-3d ore-glow-emerald p-6 flex flex-col justify-between bg-[#0d0d11]"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-[#55ff55] uppercase tracking-wider font-bold">
-              TOTEM OF CONQUEST
-            </span>
-            <Flame className="h-5 w-5 text-[#55ff55]" />
-          </div>
-
-          <div className="my-6 flex flex-col items-center justify-center">
-            <span className="text-6xl font-extrabold text-white font-mono tracking-tight drop-shadow-[0_0_10px_rgba(85,255,85,0.2)]">
-              {stats.quizzesPassed}
-            </span>
-            <span className="text-xs text-white/50 font-mono mt-1">Quizzes Passed</span>
-          </div>
-
-          <div className="space-y-2 pt-3 border-t border-[#55ff55]/10">
-            <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-white/60">Success Rate</span>
-              <span className="text-[#55ff55] font-bold">
-                {Math.round((stats.quizzesPassed / (stats.totalAttempts || 1)) * 100)}%
-              </span>
-            </div>
-            <div className="h-2 w-full voxel-xp-bar overflow-hidden p-0.5">
-              <div 
-                className="h-full bg-[#55ff55]" 
-                style={{ width: `${(stats.quizzesPassed / (stats.totalAttempts || 1)) * 100}%` }}
-              />
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Card 3: Redstone Signal Tracker */}
-        <motion.div 
-          {...scrollReveal}
-          className="voxel-card-3d ore-glow-redstone p-6 flex flex-col justify-between bg-[#0d0d11]"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-mono text-[#ff5555] uppercase tracking-wider font-bold">
-              SIGNAL ACTIVITY
-            </span>
-            <Activity className="h-5 w-5 text-[#ff5555]" />
-          </div>
-
-          <div className="h-36 w-full my-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={activityData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                <XAxis dataKey="day" stroke="#ff5555" opacity={0.6} fontSize={10} tickLine={false} axisLine={false} />
-                <YAxis stroke="#ff5555" opacity={0.6} fontSize={10} tickLine={false} axisLine={false} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0d0d11', borderColor: '#ff5555', borderRadius: '0px', color: '#fff', fontFamily: 'monospace' }}
-                  cursor={{ fill: 'rgba(255,85,85,0.05)' }}
+              {/* XP bar */}
+              <div className="micro-bar">
+                <div
+                  ref={xpFillRef}
+                  className="micro-fill bg-gradient-to-r from-cyan-400 to-violet-500"
+                  style={{ width: `${xpPercentage}%` }}
                 />
-                <Bar dataKey="hours" radius={0}>
-                  {activityData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={colorMap[entry.type]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+              </div>
+              <p className="text-[10px] font-orbitron tracking-wider text-zinc-500">
+                {stats.quizzesPassed % 3 === 0
+                  ? 'Directive required to rank up'
+                  : `${xpNeeded - currentLevelXp} assessments to Level ${level + 1}`}
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs font-mono text-[#ff5555] pt-3 border-t border-[#ff5555]/10">
-            <span>Redstone status: High</span>
-            <span className="text-white/60">Peak: Wed</span>
+          <div className="flex flex-col items-center justify-center p-4 bg-black/40 border border-white/5 clip-hud-sm min-w-[160px] text-center">
+            <Box className="w-8 h-8 text-cyan-300 mb-2 animate-pulse" />
+            <span className="text-[9px] font-orbitron tracking-widest text-zinc-500 uppercase">Current Rank</span>
+            <span className="text-sm font-orbitron font-black text-white uppercase tracking-widest">Elite Vanguard</span>
           </div>
-        </motion.div>
-      </div>
+        </div>
+        <span className="bk bk-tl" />
+        <span className="bk bk-br" />
+      </section>
 
-      {/* Recommended Directives Catalog */}
-      <motion.div 
-        {...scrollReveal}
-        className="space-y-6 pt-4"
-      >
+      {/* ── METRIC GRIDS ── */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        {/* Reactor card */}
+        <div className="brackets">
+          <div className="tilt metal clip-hud p-6 h-full flex flex-col justify-between" style={{ transformStyle: 'preserve-3d' }}>
+            <div className="shine" />
+            <div className="pop flex flex-col justify-between h-full">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-orbitron text-neon-cyan uppercase tracking-widest font-bold">
+                  Accuracy Reactor
+                </span>
+                <Zap className="h-5 w-5 text-cyan-300" />
+              </div>
+
+              <div className="my-6 flex items-center justify-center relative">
+                <svg className="w-36 h-36 transform -rotate-90">
+                  <circle cx="72" cy="72" r="56" stroke="rgba(255,255,255,.05)" strokeWidth="8" fill="transparent" />
+                  <circle
+                    cx="72"
+                    cy="72"
+                    r="56"
+                    stroke="#22d3ee"
+                    strokeWidth="8"
+                    strokeDasharray={351.8}
+                    strokeDashoffset={351.8 - (351.8 * stats.avgScore) / 100}
+                    strokeLinecap="square"
+                    className="transition-all duration-1000 ease-out"
+                    fill="transparent"
+                    style={{ filter: 'drop-shadow(0 0 6px rgba(34,211,238,.4))' }}
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span className="text-4xl font-orbitron font-black text-white">{stats.avgScore}%</span>
+                  <span className="text-[8px] font-orbitron text-neon-cyan tracking-widest uppercase">DIAGNOSTIC OK</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-center gap-1.5 text-xs text-neon-cyan font-orbitron pt-3 border-t border-white/5">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span>+5% calibration gain this cycle</span>
+              </div>
+            </div>
+          </div>
+          <span className="bk bk-tl" /><span className="bk bk-br" />
+        </div>
+
+        {/* Conquest Totem */}
+        <div className="brackets">
+          <div className="tilt metal clip-hud p-6 h-full flex flex-col justify-between" style={{ transformStyle: 'preserve-3d' }}>
+            <div className="shine" />
+            <div className="pop flex flex-col justify-between h-full">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-orbitron text-neon-violet uppercase tracking-widest font-bold">
+                  Totem of Conquest
+                </span>
+                <Flame className="h-5 w-5 text-violet-400" />
+              </div>
+
+              <div className="my-6 flex flex-col items-center justify-center text-center">
+                <span className="text-6xl font-orbitron font-black text-white tracking-tight" style={{ textShadow: '0 0 16px rgba(168,85,247,.4)' }}>
+                  {stats.quizzesPassed}
+                </span>
+                <span className="text-xs text-zinc-500 font-orbitron uppercase tracking-widest mt-1">Quizzes Passed</span>
+              </div>
+
+              <div className="space-y-2 pt-3 border-t border-white/5">
+                <div className="flex items-center justify-between text-xs font-orbitron">
+                  <span className="text-zinc-500">Success Rate</span>
+                  <span className="text-neon-violet font-bold">
+                    {Math.round((stats.quizzesPassed / (stats.totalAttempts || 1)) * 100)}%
+                  </span>
+                </div>
+                <div className="micro-bar">
+                  <div
+                    className="micro-fill bg-gradient-to-r from-violet-500 to-pink-500 animated"
+                    style={{ width: `${(stats.quizzesPassed / (stats.totalAttempts || 1)) * 100}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <span className="bk bk-tl" /><span className="bk bk-br" />
+        </div>
+
+        {/* Redstone signal activity */}
+        <div className="brackets">
+          <div className="tilt metal clip-hud p-6 h-full flex flex-col justify-between" style={{ transformStyle: 'preserve-3d' }}>
+            <div className="shine" />
+            <div className="pop flex flex-col justify-between h-full">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-orbitron text-neon-gold uppercase tracking-widest font-bold">
+                  Signal Activity
+                </span>
+                <Activity className="h-5 w-5 text-amber-400" />
+              </div>
+
+              <div className="h-36 w-full my-4">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={activityData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
+                    <XAxis dataKey="day" stroke="#71717a" opacity={0.6} fontSize={9} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#71717a" opacity={0.6} fontSize={9} tickLine={false} axisLine={false} />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: '#0c0c10', borderColor: 'rgba(255,255,255,0.08)', color: '#fff', fontFamily: 'Orbitron' }}
+                      cursor={{ fill: 'rgba(255,255,255,0.03)' }}
+                    />
+                    <Bar dataKey="hours">
+                      {activityData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={colorMap[entry.type]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              <div className="flex items-center justify-between text-xs font-orbitron text-neon-gold pt-3 border-t border-white/5">
+                <span>Signal status: High</span>
+                <span className="text-zinc-500">Peak: Wed</span>
+              </div>
+            </div>
+          </div>
+          <span className="bk bk-tl" /><span className="bk bk-br" />
+        </div>
+      </section>
+
+      {/* ── RECOMMENDATIONS ── */}
+      <section className="space-y-6 mb-12">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 className="font-mono text-2xl font-bold text-white tracking-tight uppercase flex items-center gap-2">
-              <Box className="w-6 h-6 text-[#55ff55]" />
+            <h2 className="font-orbitron text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <Box className="w-5 h-5 text-cyan-300" />
               Active Assessment Directives
             </h2>
-            <p className="text-xs text-white/50 font-mono mt-0.5">Explore active evaluation courses and skill benchmarks</p>
+            <p className="text-xs text-zinc-500">Explore active evaluation courses and skill benchmarks</p>
           </div>
-          <Link
-            to="/quizzes"
-            className="voxel-btn-3d text-xs font-mono font-bold text-white border border-white/10 px-4 py-2.5 hover:bg-white hover:text-black hover:border-white transition-all flex items-center justify-center gap-1.5"
-          >
-            <span>View Full Archive ({quizzes.length})</span>
-            <ArrowRight className="h-3.5 w-3.5" />
+          <Link to="/quizzes" style={{ textDecoration: 'none' }}>
+            <button className="btn-steel clip-hud-sm px-4 py-2 font-orbitron text-[10px] tracking-[.15em] flex items-center gap-1">
+              View Full Archive ({quizzes.length}) →
+            </button>
           </Link>
         </div>
 
         {quizLoading ? (
-          <div className="text-center py-12 text-[#55ff55] font-mono text-xs animate-pulse">Loading assessment catalog...</div>
+          <div className="text-center py-12 font-orbitron text-xs tracking-widest text-zinc-500">
+            LOADING MISSIONS CATALOG...
+          </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {quizzes.map((quiz) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {quizzes.slice(0, 3).map((quiz) => (
               <QuizCard key={quiz.id} quiz={quiz} />
             ))}
           </div>
         )}
-      </motion.div>
+      </section>
 
-      {/* Recent Attempts Terminal */}
-      <motion.div 
-        {...scrollReveal}
-        className="voxel-card-3d p-6 space-y-4 bg-[#0d0d11] border border-white/10"
-      >
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-bold text-white font-mono uppercase flex items-center gap-2">
-            <Terminal className="w-5 h-5 text-[#55ff55]" />
-            Assessment Telemetry Logs
+      {/* ── TELEMETRY LOGS TABLE ── */}
+      <section className="tilt metal clip-hud overflow-hidden">
+        <div className="shine" />
+        <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}>
+          <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
+            <Activity className="w-4 h-4 text-neon-cyan" />
+            <span style={{ color: '#fff' }}>ASSESSMENT TELEMETRY LOGS</span>
           </h3>
-          <Link to="/history" className="text-xs text-[#00ffff] hover:underline font-mono uppercase">
-            [ Access Archive ]
+          <Link to="/history" style={{ textDecoration: 'none' }}>
+            <button className="font-orbitron hover:text-white transition-colors" style={{ fontSize: 10, letterSpacing: '0.25em', color: '#22d3ee', background: 'none', border: 'none', cursor: 'pointer' }}>
+              ACCESS ARCHIVE →
+            </button>
           </Link>
         </div>
 
         {userAttempts.length === 0 ? (
-          <div className="text-center py-8 text-xs font-mono text-white/40">
-            No telemetry logs recorded. Initiate a directive above.
+          <div className="text-center py-12 font-orbitron text-xs tracking-widest text-zinc-500">
+            NO TELEMETRY LOGS RECORDED. INITIATE A DIRECTIVE ABOVE.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-[#dfe2eb]">
-              <thead className="text-xs font-mono uppercase text-white/40 border-b border-[#1c1c24]">
+          <div style={{ overflowX: 'auto' }}>
+            <table className="w-full hud-tbl">
+              <thead>
                 <tr>
-                  <th className="py-3 px-4">assessment_id</th>
-                  <th className="py-3 px-4">score_pct</th>
-                  <th className="py-3 px-4">time_taken</th>
-                  <th className="py-3 px-4">status</th>
-                  <th className="py-3 px-4 text-right">telemetry_action</th>
+                  <th>assessment_id</th>
+                  <th>score_pct</th>
+                  <th>time_taken</th>
+                  <th>status</th>
+                  <th />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1c1c24] font-mono text-xs">
+              <tbody>
                 {userAttempts.slice(0, 4).map((att) => (
-                  <tr key={att.id} className="hover:bg-white/5 transition-colors">
-                    <td className="py-4 px-4 font-sans font-medium text-white">{att.quizTitle}</td>
-                    <td className="py-4 px-4 text-[#00ffff] font-bold">{att.percentage}%</td>
-                    <td className="py-4 px-4 text-white/50">{att.timeTaken}</td>
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 text-[10px] font-mono font-bold ${
-                          att.status === 'PASSED'
-                            ? 'bg-[#55ff55]/10 text-[#55ff55] border border-[#55ff55]/30'
-                            : 'bg-red-500/10 text-red-400 border border-red-500/30'
-                        }`}
-                      >
-                        {att.status}
+                  <tr key={att.id}>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <div className="diamond flex items-center justify-center font-orbitron font-black text-black"
+                          style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', fontSize: 10 }}>
+                          <span style={{ transform: 'rotate(-45deg)' }}>QU</span>
+                        </div>
+                        <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>{att.quizTitle}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="font-orbitron font-black text-white">
+                        {att.percentage}%
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-right font-sans">
-                      <Link
-                        to={`/quiz/result/${att.id}`}
-                        className="text-xs text-[#00ffff] hover:underline font-mono uppercase font-bold"
-                      >
-                        [ REVIEW ]
+                    <td style={{ color: '#71717a' }}>{att.timeTaken}</td>
+                    <td>
+                      <span className="hud-badge" style={{
+                        background: att.status === 'PASSED' ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)',
+                        color: att.status === 'PASSED' ? '#6ee7b7' : '#fca5a5',
+                        border: att.status === 'PASSED' ? '1px solid rgba(52,211,153,.25)' : '1px solid rgba(239,68,68,.25)'
+                      }}>
+                        {att.status === 'PASSED' ? '✓ Passed' : '✕ Failed'}
+                      </span>
+                    </td>
+                    <td>
+                      <Link to={`/quiz/result/${att.id}`}>
+                        <Eye className="w-4 h-4 text-zinc-500 hover:text-white transition-colors" />
                       </Link>
                     </td>
                   </tr>
@@ -357,7 +369,9 @@ export const StudentDashboard = () => {
             </table>
           </div>
         )}
-      </motion.div>
-    </div>
+      </section>
+    </HudPlayerLayout>
   );
 };
+
+export default StudentDashboard;

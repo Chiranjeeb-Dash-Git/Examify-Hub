@@ -281,65 +281,28 @@ export const AdminQuizzesPage = () => {
   return (
     <HudAdminLayout>
       <div className="relative mx-auto max-w-7xl px-5 sm:px-8 pb-20" style={{ paddingTop: 0 }}>
-        <div className="relative space-y-10">
+        <div className="relative">
 
           {/* ═══ HEADER ═══ */}
-          <div className="relative text-center">
+          <div className="relative mb-6">
             <div className="hex-divider mb-5" />
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 hud-badge bg-emerald-500/10 border border-emerald-500/30 mb-4">
-              <span className="pulse-dot bg-emerald-400" />
-              <span className="font-orbitron text-[10px] tracking-[.35em] uppercase text-emerald-300">
-                Admin · Quiz Registry
-              </span>
-            </div>
-            <h1 className="font-orbitron font-black text-4xl md:text-6xl tracking-tight mb-4">
-              <span className="chrome-text">ASSESSMENT&nbsp;</span>
-              <span className="grad-neon">PROTOCOLS</span>
-            </h1>
-            <p className="text-zinc-400 font-light text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-              Deploy, configure, and monitor assessment directives. Import via AI, edit questions, and toggle live status.
-            </p>
-            <div className="hex-divider mt-8" />
-          </div>
-
-          {/* ═══ COMMAND BAR ═══ */}
-          <div className="relative brackets metal clip-hud p-6 md:p-7">
-            <span className="bk bk-tl" /><span className="bk bk-br" />
-            <div className="shine" />
-
-            <div className="flex flex-wrap gap-4 items-stretch mb-5">
-              {/* Search */}
-              <div className="relative flex-1 min-w-[260px]">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="Search assessments by title, category, or directive id…"
-                  className="hud-input w-full clip-hud-sm pl-11 pr-4 py-3.5 text-xs font-orbitron tracking-wider outline-none"
-                />
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 hud-badge bg-emerald-500/10 border border-emerald-500/30 mb-3">
+                  <span className="pulse-dot bg-emerald-400" />
+                  <span className="font-orbitron text-[10px] tracking-[.35em] uppercase text-emerald-300">
+                    Admin · Quiz Registry
+                  </span>
+                </div>
+                <h1 className="font-orbitron font-black text-3xl md:text-4xl tracking-tight">
+                  <span className="chrome-text">ASSESSMENT&nbsp;</span>
+                  <span className="grad-neon">PROTOCOLS</span>
+                </h1>
+                <p className="text-zinc-400 font-light text-sm max-w-2xl mt-2 leading-relaxed">
+                  Deploy, configure, and monitor assessment directives. Import via AI, edit questions, and toggle live status.
+                </p>
               </div>
-
-              <select value={diffFilter} onChange={e => setDiffFilter(e.target.value)}
-                className="hud-input clip-hud-sm px-4 py-3.5 text-xs font-orbitron tracking-wider cursor-pointer">
-                <option value="all">All Difficulty</option>
-                <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
-              </select>
-
-              <select value={durFilter} onChange={e => setDurFilter(e.target.value)}
-                className="hud-input clip-hud-sm px-4 py-3.5 text-xs font-orbitron tracking-wider cursor-pointer">
-                <option value="all">Any Duration</option>
-                <option value="short">≤ 10 min</option>
-                <option value="medium">11–30 min</option>
-                <option value="long">&gt; 30 min</option>
-              </select>
-
-              <select value={sortBy} onChange={e => setSortBy(e.target.value)}
-                className="hud-input clip-hud-sm px-4 py-3.5 text-xs font-orbitron tracking-wider cursor-pointer">
-                <option value="recent">Recently Added</option>
-                <option value="popular">Most Runs</option>
-              </select>
-
-              <div className="flex items-center gap-2 ml-auto">
+              <div className="flex items-center gap-2">
                 <button onClick={() => setShowPdfModal(true)}
                   className="btn-ghost px-5 py-3 clip-hud-sm font-orbitron text-[10px] tracking-[.22em] text-white flex items-center gap-2">
                   <Upload className="w-4 h-4" /> PDF IMPORT
@@ -350,62 +313,156 @@ export const AdminQuizzesPage = () => {
                 </button>
               </div>
             </div>
-
-            {/* Category Chips */}
-            <div className="flex flex-wrap gap-2">
-              {allCats.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCat(cat)}
-                  className={`chip px-4 py-2 ${activeCat === cat ? 'chip-on' : 'chip-off'}`}
-                >
-                  {cat === 'all' ? <LayoutGrid className="w-3 h-3 inline mr-1.5" /> : <Tag className="w-3 h-3 inline mr-1.5" />}
-                  {cat === 'all' ? 'All Categories' : cat}
-                </button>
-              ))}
-            </div>
+            <div className="hex-divider" />
           </div>
 
-          {/* ═══ RESULTS META ═══ */}
-          <div className="flex items-center justify-between">
-            <span className="font-orbitron text-[10px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-2">
-              <span className="text-neon-cyan">◤</span>
-              <span className="text-zinc-200 font-bold">{filtered.length}</span> Assessments Located
-            </span>
-            <span className="font-orbitron text-[10px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300" />
-              Live sync · {new Date().toLocaleDateString()}
-            </span>
-          </div>
+          {/* ═══ MAIN LAYOUT: SIDEBAR FILTERS + QUIZ GRID ═══ */}
+          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
 
-          {/* ═══ QUIZ CARD GRID ═══ */}
-          {filtered.length > 0 ? (
-            <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6" style={{ perspective: '1200px' }}>
-              {filtered.map((quiz) => (
-                <motion.div
-                  key={quiz.id}
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                >
-                  <AdminQuizCard
-                    quiz={quiz}
-                    onToggle={handleToggleStatus}
-                    onEdit={handleOpenModal}
-                    onDelete={handleDelete}
-                    onView={setDetailQuiz}
-                  />
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="brackets metal clip-hud p-16 text-center relative">
-              <span className="bk bk-tl" /><span className="bk bk-br" />
-              <Search className="w-10 h-10 mx-auto mb-4 opacity-40 text-zinc-500" />
-              <p className="font-orbitron tracking-wider text-zinc-300 font-bold mb-1">NO ASSESSMENTS MATCH</p>
-              <p className="text-sm text-zinc-500">Try adjusting filters or clear the search field.</p>
-            </div>
-          )}
+            {/* ═══ LEFT SIDEBAR: FILTERS ═══ */}
+            <aside className="space-y-5">
+              {/* Search */}
+              <div className="relative brackets metal clip-hud p-4">
+                <span className="bk bk-tl" /><span className="bk bk-br" />
+                <div className="shine" />
+                <div className="pop space-y-4">
+                  <div className="font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-1.5 mb-1">
+                    <Filter className="w-3 h-3 text-neon-cyan" /> Search Directive
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500" />
+                    <input
+                      value={search}
+                      onChange={e => setSearch(e.target.value)}
+                      placeholder="Title, category, ID…"
+                      className="hud-input w-full clip-hud-sm pl-9 pr-3 py-2.5 text-[10px] font-orbitron tracking-wider outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Difficulty */}
+              <div className="relative brackets metal clip-hud p-4">
+                <span className="bk bk-tl" /><span className="bk bk-br" />
+                <div className="shine" />
+                <div className="pop space-y-3">
+                  <div className="font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-1.5">
+                    <Target className="w-3 h-3 text-neon-violet" /> Difficulty Tier
+                  </div>
+                  <select value={diffFilter} onChange={e => setDiffFilter(e.target.value)}
+                    className="hud-input w-full clip-hud-sm px-3 py-2.5 text-[10px] font-orbitron tracking-wider cursor-pointer">
+                    <option value="all">All Difficulty</option>
+                    <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Duration */}
+              <div className="relative brackets metal clip-hud p-4">
+                <span className="bk bk-tl" /><span className="bk bk-br" />
+                <div className="shine" />
+                <div className="pop space-y-3">
+                  <div className="font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-1.5">
+                    <Timer className="w-3 h-3 text-neon-gold" /> Duration Band
+                  </div>
+                  <select value={durFilter} onChange={e => setDurFilter(e.target.value)}
+                    className="hud-input w-full clip-hud-sm px-3 py-2.5 text-[10px] font-orbitron tracking-wider cursor-pointer">
+                    <option value="all">Any Duration</option>
+                    <option value="short">≤ 10 min</option>
+                    <option value="medium">11–30 min</option>
+                    <option value="long">&gt; 30 min</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Sort */}
+              <div className="relative brackets metal clip-hud p-4">
+                <span className="bk bk-tl" /><span className="bk bk-br" />
+                <div className="shine" />
+                <div className="pop space-y-3">
+                  <div className="font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-1.5">
+                    <Rocket className="w-3 h-3 text-neon-cyan" /> Sort Order
+                  </div>
+                  <select value={sortBy} onChange={e => setSortBy(e.target.value)}
+                    className="hud-input w-full clip-hud-sm px-3 py-2.5 text-[10px] font-orbitron tracking-wider cursor-pointer">
+                    <option value="recent">Recently Added</option>
+                    <option value="popular">Most Runs</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div className="relative brackets metal clip-hud p-4">
+                <span className="bk bk-tl" /><span className="bk bk-br" />
+                <div className="shine" />
+                <div className="pop space-y-2.5">
+                  <div className="font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-1.5 mb-1">
+                    <Tag className="w-3 h-3 text-emerald-300" /> Category Filter
+                  </div>
+                  <div className="flex flex-col gap-1.5 max-h-[280px] overflow-y-auto pr-1">
+                    {allCats.map(cat => (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCat(cat)}
+                        className={`text-left px-3 py-2 clip-hud-sm font-orbitron text-[10px] tracking-wider transition-all ${
+                          activeCat === cat
+                            ? 'bg-cyan-500/15 border border-cyan-400/40 text-cyan-200'
+                            : 'bg-black/25 border border-white/5 text-zinc-400 hover:text-white hover:border-white/20'
+                        }`}
+                      >
+                        {cat === 'all' ? <LayoutGrid className="w-3 h-3 inline mr-1.5" /> : <Tag className="w-3 h-3 inline mr-1.5" />}
+                        {cat === 'all' ? 'All Categories' : cat}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Results count */}
+              <div className="px-1 pt-2 space-y-1">
+                <div className="font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-1.5">
+                  <span className="text-neon-cyan">◤</span>
+                  <span className="text-zinc-200 font-bold">{filtered.length}</span> Located
+                </div>
+                <div className="font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 flex items-center gap-1.5">
+                  <Sparkles className="w-3 h-3 text-fuchsia-300" />
+                  Live sync
+                </div>
+              </div>
+            </aside>
+
+            {/* ═══ RIGHT / TOP: QUIZ CARD GRID ═══ */}
+            <section className="min-w-0">
+              {filtered.length > 0 ? (
+                <div className="grid sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-6" style={{ perspective: '1200px' }}>
+                  {filtered.map((quiz) => (
+                    <motion.div
+                      key={quiz.id}
+                      initial={{ opacity: 0, y: 24 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <AdminQuizCard
+                        quiz={quiz}
+                        onToggle={handleToggleStatus}
+                        onEdit={handleOpenModal}
+                        onDelete={handleDelete}
+                        onView={setDetailQuiz}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              ) : (
+                <div className="brackets metal clip-hud p-16 text-center relative">
+                  <span className="bk bk-tl" /><span className="bk bk-br" />
+                  <Search className="w-10 h-10 mx-auto mb-4 opacity-40 text-zinc-500" />
+                  <p className="font-orbitron tracking-wider text-zinc-300 font-bold mb-1">NO ASSESSMENTS MATCH</p>
+                  <p className="text-sm text-zinc-500">Try adjusting filters or clear the search field.</p>
+                </div>
+              )}
+            </section>
+
+          </div>
 
         </div>
 

@@ -155,6 +155,31 @@ export const AdminQuestionsPage = () => {
     });
   };
 
+  const handleAddOption = () => {
+    setFormData(prev => ({
+      ...prev,
+      options: [
+        ...prev.options,
+        { id: `opt-${Date.now()}-${prev.options.length + 1}`, text: '', isCorrect: false }
+      ]
+    }));
+  };
+
+  const handleRemoveOption = (idx) => {
+    if (formData.options.length <= 2) {
+      alert('Minimum 2 options required.');
+      return;
+    }
+    setFormData(prev => {
+      const newOpts = prev.options.filter((_, i) => i !== idx);
+      const wasCorrect = prev.options[idx]?.isCorrect;
+      if (wasCorrect && newOpts.length > 0) {
+        newOpts[0].isCorrect = true;
+      }
+      return { ...prev, options: newOpts };
+    });
+  };
+
   return (
     <HudAdminLayout>
     <div className="max-w-5xl mx-auto space-y-8">
@@ -280,16 +305,62 @@ export const AdminQuestionsPage = () => {
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-white/60 uppercase text-[10px] tracking-wider">Marks</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={formData.marks}
+                    onChange={(e) => setFormData({ ...formData, marks: Number(e.target.value) })}
+                    className="w-full p-2.5 rounded-2xl bg-white/[0.03] border border-white/10 text-white text-xs focus:outline-none focus:border-white/40"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-white/60 uppercase text-[10px] tracking-wider">Difficulty</label>
+                  <select
+                    value={formData.difficulty}
+                    onChange={(e) => setFormData({ ...formData, difficulty: e.target.value })}
+                    className="w-full p-2.5 rounded-2xl bg-white/[0.03] border border-white/10 text-white text-xs focus:outline-none focus:border-white/40 cursor-pointer"
+                  >
+                    <option value="Easy">Easy</option>
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="block text-white/60 uppercase text-[10px] tracking-wider">Explanation (optional)</label>
+                <textarea
+                  rows={2}
+                  value={formData.explanation}
+                  onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
+                  placeholder="Explain why the correct answer is right..."
+                  className="w-full p-3 rounded-2xl bg-white/[0.03] border border-white/10 text-white text-xs focus:outline-none focus:border-white/40"
+                />
+              </div>
+
               <div className="space-y-3 pt-2">
-                <label className="block text-white/80 font-semibold uppercase text-[10px]">Options (Select radio for correct choice)</label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-white/80 font-semibold uppercase text-[10px]">Options (Select radio for correct choice)</label>
+                  <button
+                    type="button"
+                    onClick={handleAddOption}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/20 text-white/80 hover:text-white hover:border-cyan-400/50 transition-all"
+                  >
+                    <Plus className="h-3.5 w-3.5" /> <span className="text-[10px] uppercase tracking-wider">Add Option</span>
+                  </button>
+                </div>
                 {formData.options.map((opt, idx) => (
-                  <div key={idx} className="flex items-center gap-3">
+                  <div key={idx} className="flex items-center gap-2">
                     <input
                       type="radio"
                       name="correctOption"
                       checked={opt.isCorrect}
                       onChange={() => setCorrectOption(idx)}
-                      className="accent-white h-4 w-4 cursor-pointer"
+                      className="accent-white h-4 w-4 cursor-pointer shrink-0"
                     />
                     <input
                       type="text"
@@ -299,6 +370,14 @@ export const AdminQuestionsPage = () => {
                       placeholder={`Option ${String.fromCharCode(65 + idx)} text`}
                       className="w-full p-2.5 rounded-2xl bg-white/[0.03] border border-white/10 text-white text-xs focus:outline-none focus:border-white/40"
                     />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOption(idx)}
+                      className="p-2 rounded-full text-white/50 hover:text-red-400 hover:bg-red-500/10 transition-all shrink-0"
+                      title="Remove option"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>

@@ -280,36 +280,36 @@ export const AdminQuizzesPage = () => {
 
   return (
     <HudAdminLayout>
-      <div className="relative mx-auto max-w-7xl px-5 sm:px-8 pb-20" style={{ paddingTop: 0 }}>
+      <div className="relative w-full px-2 sm:px-4 md:px-6 lg:px-8 pb-12" style={{ paddingTop: 0 }}>
         <div className="relative">
 
           {/* ═══ HEADER ═══ */}
-          <div className="relative mb-6">
-            <div className="hex-divider mb-5" />
-            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+          <div className="relative mb-5">
+            <div className="hex-divider mb-4" />
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3 mb-5">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 hud-badge bg-emerald-500/10 border border-emerald-500/30 mb-3">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 hud-badge bg-emerald-500/10 border border-emerald-500/30 mb-2">
                   <span className="pulse-dot bg-emerald-400" />
                   <span className="font-orbitron text-[10px] tracking-[.35em] uppercase text-emerald-300">
                     Admin · Quiz Registry
                   </span>
                 </div>
-                <h1 className="font-orbitron font-black text-3xl md:text-4xl tracking-tight">
+                <h1 className="font-orbitron font-black text-2xl sm:text-3xl md:text-4xl tracking-tight">
                   <span className="chrome-text">ASSESSMENT&nbsp;</span>
                   <span className="grad-neon">PROTOCOLS</span>
                 </h1>
-                <p className="text-zinc-400 font-light text-sm max-w-2xl mt-2 leading-relaxed">
+                <p className="text-zinc-400 font-light text-xs sm:text-sm max-w-2xl mt-1.5 leading-relaxed">
                   Deploy, configure, and monitor assessment directives. Import via AI, edit questions, and toggle live status.
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => setShowPdfModal(true)}
-                  className="btn-ghost px-5 py-3 clip-hud-sm font-orbitron text-[10px] tracking-[.22em] text-white flex items-center gap-2">
-                  <Upload className="w-4 h-4" /> PDF IMPORT
+                  className="btn-ghost px-4 py-2.5 clip-hud-sm font-orbitron text-[10px] tracking-[.22em] text-white flex items-center gap-2">
+                  <Upload className="w-3.5 h-3.5" /> PDF IMPORT
                 </button>
                 <button onClick={() => handleOpenModal()}
-                  className="btn-neon px-5 py-3 clip-hud-sm font-orbitron text-[10px] tracking-[.22em] text-white flex items-center gap-2">
-                  <Plus className="w-4 h-4" /> NEW QUIZ
+                  className="btn-neon px-4 py-2.5 clip-hud-sm font-orbitron text-[10px] tracking-[.22em] text-white flex items-center gap-2">
+                  <Plus className="w-3.5 h-3.5" /> NEW QUIZ
                 </button>
               </div>
             </div>
@@ -317,7 +317,7 @@ export const AdminQuizzesPage = () => {
           </div>
 
           {/* ═══ MAIN LAYOUT: SIDEBAR FILTERS + QUIZ GRID ═══ */}
-          <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] xl:grid-cols-[250px_1fr] gap-4 md:gap-5 lg:gap-6">
 
             {/* ═══ LEFT SIDEBAR: FILTERS ═══ */}
             <aside className="space-y-5">
@@ -434,7 +434,7 @@ export const AdminQuizzesPage = () => {
             {/* ═══ RIGHT / TOP: QUIZ CARD GRID ═══ */}
             <section className="min-w-0">
               {filtered.length > 0 ? (
-                <div className="grid sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3 gap-6" style={{ perspective: '1200px' }}>
+                <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 md:gap-5" style={{ perspective: '1200px' }}>
                   {filtered.map((quiz) => (
                     <motion.div
                       key={quiz.id}

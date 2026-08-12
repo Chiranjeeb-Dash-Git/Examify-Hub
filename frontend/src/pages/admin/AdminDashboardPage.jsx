@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   Users, BookOpen, Globe, HelpCircle, ListChecks,
   Gauge, CheckCircle2, XCircle, TrendingUp, TrendingDown,
-  Activity, Eye, Plus, BarChart3, Bell, ChevronDown,
+  Plus, BarChart3, Bell, ChevronDown,
   Zap, ShieldHalf, Flame, UserPlus, PieChart, LogOut, Shield
 } from 'lucide-react';
 
@@ -162,7 +162,6 @@ export const AdminDashboardPage = () => {
   const location = useLocation();
 
   const [metrics, setMetrics] = useState(null);
-  const [recentAttempts, setRecentAttempts] = useState([]);
   const [allAttempts, setAllAttempts] = useState([]);
   const [users, setUsers] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
@@ -186,7 +185,6 @@ export const AdminDashboardPage = () => {
     ]).then(([m, atts, usrs, qzs]) => {
       setMetrics(m);
       setAllAttempts(atts || []);
-      setRecentAttempts((atts || []).slice(0, 5));
       setUsers(usrs || []);
       setQuizzes(qzs || []);
     }).catch(console.error);
@@ -286,15 +284,6 @@ export const AdminDashboardPage = () => {
         }
       );
     });
-    const tableSection = document.querySelector('.attempts-table-section');
-    if (tableSection) {
-      gsap.fromTo(tableSection,
-        { opacity: 0, y: 50 },
-        { opacity: 1, y: 0, duration: 1, ease: 'power3.out',
-          scrollTrigger: { trigger: tableSection, start: 'top 88%' }
-        }
-      );
-    }
   }, [metrics]);
 
   const passRate = metrics
@@ -322,14 +311,6 @@ export const AdminDashboardPage = () => {
   ];
 
   const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-
-  // Placeholder attempts when empty
-  const placeholderAttempts = [
-    { initials: 'RS', name: 'Rahul Sharma',  quiz: 'JavaScript Fundamentals',  date: 'Aug 10', score: 92, passed: true,  from: 'from-cyan-400',    to: 'to-blue-600' },
-    { initials: 'PP', name: 'Priya Patel',   quiz: 'React Essentials',          date: 'Aug 10', score: 88, passed: true,  from: 'from-fuchsia-400', to: 'to-violet-600' },
-    { initials: 'AK', name: 'Amit Kumar',    quiz: 'Python Basics',             date: 'Aug 09', score: 46, passed: false, from: 'from-amber-400',   to: 'to-red-500' },
-    { initials: 'SR', name: 'Sneha Reddy',   quiz: 'Cyber Security Essentials', date: 'Aug 09', score: 81, passed: true,  from: 'from-emerald-400', to: 'to-teal-600' },
-  ];
 
   if (!metrics) return (
     <div className="hud-root fixed inset-0 flex items-center justify-center" style={{ background: '#030304', fontFamily: 'Orbitron, sans-serif' }}>
@@ -527,96 +508,6 @@ export const AdminDashboardPage = () => {
             <Brackets all />
           </div>
 
-        </section>
-
-        {/* ── RECENT ATTEMPTS TABLE ── */}
-        <section className="attempts-table-section tilt metal clip-hud overflow-hidden" style={{ opacity: 0 }}>
-          <div className="shine" />
-          <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}>
-            <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-              <Activity className="w-4 h-4 text-neon-cyan" />
-              <span style={{ color: '#fff' }}>RECENT ATTEMPTS</span>
-            </h3>
-            <Link to="/admin/attempts">
-              <button className="font-orbitron hover:text-white transition-colors" style={{ fontSize: 10, letterSpacing: '0.25em', color: '#22d3ee', background: 'none', border: 'none', cursor: 'pointer' }}>
-                VIEW ALL →
-              </button>
-            </Link>
-          </div>
-          <div style={{ overflowX: 'auto' }}>
-            <table className="w-full hud-tbl">
-              <thead>
-                <tr>
-                  <th>Operative</th>
-                  <th>Quiz Mission</th>
-                  <th>Date</th>
-                  <th>Score</th>
-                  <th>Status</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {recentAttempts.length > 0 ? recentAttempts.map((att, i) => {
-                  const nm = att.userName || 'Student';
-                  const ini = nm.split(' ').map(w => w[0] || '').slice(0, 2).join('').toUpperCase();
-                  return (
-                    <tr key={att.id || i}>
-                      <td>
-                        <div className="flex items-center gap-3">
-                          <div className="diamond flex items-center justify-center font-orbitron font-black text-black"
-                            style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', fontSize: 10 }}>
-                            <span style={{ transform: 'rotate(-45deg)' }}>{ini}</span>
-                          </div>
-                          <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>{nm}</span>
-                        </div>
-                      </td>
-                      <td style={{ color: '#d4d4d8' }}>{att.quizTitle}</td>
-                      <td style={{ color: '#71717a' }}>{new Date(att.date || att.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</td>
-                      <td>
-                        <span className="font-orbitron font-black" style={{ color: att.passed ? '#34d399' : '#f87171', textShadow: att.passed ? '0 0 12px rgba(52,211,153,.5)' : '0 0 12px rgba(248,113,113,.5)' }}>
-                          {att.percentage}%
-                        </span>
-                      </td>
-                      <td>
-                        <span className="hud-badge" style={{ background: att.passed ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)', color: att.passed ? '#6ee7b7' : '#fca5a5', border: att.passed ? '1px solid rgba(52,211,153,.25)' : '1px solid rgba(239,68,68,.25)' }}>
-                          {att.passed ? '✓ Passed' : '✕ Failed'}
-                        </span>
-                      </td>
-                      <td>
-                        <Link to={`/quiz/result/${att.id}`}><Eye className="w-4 h-4" style={{ color: '#52525b' }} /></Link>
-                      </td>
-                    </tr>
-                  );
-                }) : placeholderAttempts.map((r, i) => (
-                  <tr key={i}>
-                    <td>
-                      <div className="flex items-center gap-3">
-                      <div className={`diamond flex items-center justify-center font-orbitron font-black text-black bg-gradient-to-br ${r.from} ${r.to}`}
-                          style={{ width: 36, height: 36, fontSize: 10 }}
-                        >
-                          <span style={{ transform: 'rotate(-45deg)' }}>{r.initials}</span>
-                        </div>
-                        <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>{r.name}</span>
-                      </div>
-                    </td>
-                    <td style={{ color: '#d4d4d8' }}>{r.quiz}</td>
-                    <td style={{ color: '#71717a' }}>{r.date}</td>
-                    <td>
-                      <span className="font-orbitron font-black" style={{ color: r.passed ? '#34d399' : '#f87171', textShadow: r.passed ? '0 0 12px rgba(52,211,153,.5)' : '0 0 12px rgba(248,113,113,.5)' }}>
-                        {r.score}%
-                      </span>
-                    </td>
-                    <td>
-                      <span className="hud-badge" style={{ background: r.passed ? 'rgba(16,185,129,.1)' : 'rgba(239,68,68,.1)', color: r.passed ? '#6ee7b7' : '#fca5a5', border: r.passed ? '1px solid rgba(52,211,153,.25)' : '1px solid rgba(239,68,68,.25)' }}>
-                        {r.passed ? '✓ Passed' : '✕ Failed'}
-                      </span>
-                    </td>
-                    <td><Eye className="w-4 h-4" style={{ color: '#52525b' }} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </section>
 
         {/* ── FOOTER STRIP ── */}

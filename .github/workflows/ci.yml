@@ -9,33 +9,39 @@ on:
 jobs:
   build-backend:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
     defaults:
       run:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       - name: Build backend
         run: npm run build || echo "no build script"
 
   build-frontend:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [18.x]
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
-      - name: Use Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: ${{ matrix.node-version }}
       - name: Install dependencies
-        run: npm ci
+        run: npm install
       - name: Build frontend
         run: npm run build
 

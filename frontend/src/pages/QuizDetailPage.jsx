@@ -64,12 +64,12 @@ export const QuizDetailPage = () => {
   const diffClass = `d-${quiz.difficulty || 'Intermediate'}`;
 
   const metaItems = [
-    { icon: HelpCircle, label: 'Questions', val: quiz.questionsCount || quiz.questions?.length || 5, color: 'text-cyan-300' },
-    { icon: Clock, label: 'Duration', val: `${quiz.duration} min`, color: 'text-cyan-300' },
+    { icon: HelpCircle, label: 'Questions', val: quiz.questionsCount || quiz.questions?.length || 5, color: 'text-orange-300' },
+    { icon: Clock, label: 'Duration', val: `${quiz.duration} min`, color: 'text-orange-300' },
     { icon: Award, label: 'Pass Score', val: `${quiz.passingScore}%`, color: 'text-amber-400' },
-    { icon: ShieldAlert, label: 'Max Attempts', val: quiz.maxAttempts || 3, color: 'text-violet-400' },
-    { icon: Award, label: 'Total Marks', val: (quiz.questionsCount || quiz.questions?.length || 5) * 2, color: 'text-emerald-400' },
-    { icon: Play, label: 'Total Plays', val: quiz.attemptsCount || 0, color: 'text-pink-300' },
+    { icon: ShieldAlert, label: 'Max Attempts', val: quiz.maxAttempts || 3, color: 'text-orange-400' },
+    { icon: Award, label: 'Total Marks', val: (quiz.questionsCount || quiz.questions?.length || 5) * 2, color: 'text-yellow-400' },
+    { icon: Play, label: 'Total Plays', val: quiz.attemptsCount || 0, color: 'text-red-300' },
   ];
 
   return (
@@ -91,7 +91,7 @@ export const QuizDetailPage = () => {
         {/* Banner area */}
         <div className="q-banner !h-44">
           <span style={{ fontSize: '5rem' }} className="q-thumb select-none">{quiz.thumbnail || '⚡'}</span>
-          <span className="absolute top-4 left-4 hud-badge bg-black/60 text-cyan-300 border border-cyan-400/30 flex items-center gap-1.5">
+          <span className="absolute top-4 left-4 hud-badge bg-black/60 text-orange-300 border border-orange-400/30 flex items-center gap-1.5">
             <HelpCircle className="w-3 h-3" />
             {quiz.categoryName || 'General'}
           </span>
@@ -102,7 +102,7 @@ export const QuizDetailPage = () => {
 
         {/* Content body */}
         <div className="p-8">
-          <div className="font-orbitron text-[9px] tracking-[.4em] text-neon-cyan mb-2">◤ MISSION BRIEFING · ID-{String(quiz.id).slice(-3).toUpperCase()}</div>
+          <div className="font-orbitron text-[9px] tracking-[.4em] text-neon-orange mb-2">◤ MISSION BRIEFING · ID-{String(quiz.id).slice(-3).toUpperCase()}</div>
           <h2 className="font-orbitron text-3xl font-black chrome-text mb-3">{quiz.title}</h2>
           <p className="text-zinc-400 text-lg mb-6 leading-relaxed">{quiz.description}</p>
 
@@ -118,13 +118,13 @@ export const QuizDetailPage = () => {
           </div>
 
           {/* Guidelines box */}
-          <div className="bg-black/40 border border-cyan-400/15 clip-hud p-5 mb-6">
-            <div className="font-orbitron text-[9px] tracking-[.35em] text-neon-cyan mb-3">▸ ENGAGEMENT PROTOCOL</div>
+          <div className="bg-black/40 border border-orange-400/15 clip-hud p-5 mb-6">
+            <div className="font-orbitron text-[9px] tracking-[.35em] text-neon-orange mb-3">▸ ENGAGEMENT PROTOCOL</div>
             <ul className="text-zinc-400 space-y-1.5 text-[15px] font-semibold tracking-wide">
               <li>◈ Timer starts immediately — auto-submit on expiry.</li>
               <li>◈ Free navigation between questions before submission.</li>
               <li>◈ Each question carries its own marks. No negative marking.</li>
-              <li>◈ Requires <b className="text-neon-gold">{quiz.passingScore}%</b> to clear this mission.</li>
+              <li>◈ Requires <b className="text-neon-orange">{quiz.passingScore}%</b> to clear this mission.</li>
             </ul>
           </div>
 
@@ -142,7 +142,7 @@ export const QuizDetailPage = () => {
           >
             {aiGenerating ? (
               <>
-                <Sparkles className="w-4 h-4 text-violet-300 animate-pulse" />
+                <Sparkles className="w-4 h-4 text-orange-300 animate-pulse" />
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>GENERATING AI QUESTIONS · PLEASE WAIT…</span>
               </>

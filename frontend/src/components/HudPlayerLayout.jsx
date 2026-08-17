@@ -76,8 +76,8 @@ export const HudPlayerLayout = ({ children }) => {
 
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center gap-3 cursor-pointer group" style={{ textDecoration: 'none' }}>
-            <div className="diamond glow-cyan flex items-center justify-center"
-              style={{ width: 40, height: 40, background: 'linear-gradient(135deg,#22d3ee,#a855f7,#f472b6)', transition: 'transform .5s' }}
+            <div className="diamond glow-orange flex items-center justify-center"
+              style={{ width: 40, height: 40, background: 'linear-gradient(135deg,#fb923c,#f97316,#ef4444)', transition: 'transform .5s' }}
               onMouseEnter={e => e.currentTarget.style.transform = 'rotate(135deg) scale(1.1)'}
               onMouseLeave={e => e.currentTarget.style.transform = 'rotate(45deg)'}
             >
@@ -85,7 +85,7 @@ export const HudPlayerLayout = ({ children }) => {
             </div>
             <div>
               <div className="font-orbitron font-black text-lg tracking-widest leading-none">
-                <span className="chrome-text">QUIZ</span><span className="grad-neon">FORGE</span>
+                <span className="chrome-text">QUIZ</span><span className="grad-orange">FORGE</span>
               </div>
               <div className="font-orbitron mt-1" style={{ fontSize: 9, letterSpacing: '0.4em', color: '#71717a' }}>PLAYER CONSOLE</div>
             </div>
@@ -107,7 +107,7 @@ export const HudPlayerLayout = ({ children }) => {
               Arena Open
             </div>
             <div className="flex items-center gap-2.5 btn-steel clip-hud-sm px-3 py-1.5">
-              <div className="diamond flex items-center justify-center font-orbitron font-black text-black" style={{ width: 32, height: 32, background: 'linear-gradient(135deg,#22d3ee,#7c3aed)', fontSize: 10 }}>
+              <div className="diamond flex items-center justify-center font-orbitron font-black text-black" style={{ width: 32, height: 32, background: 'linear-gradient(135deg,#fb923c,#ea580c)', fontSize: 10 }}>
                 <span style={{ transform: 'rotate(-45deg)' }}>{user ? initials(user.name) : 'ST'}</span>
               </div>
               <span className="hidden md:block text-sm font-bold tracking-wide">{user?.name?.split(' ')[0]?.toUpperCase() || 'STUDENT'}</span>

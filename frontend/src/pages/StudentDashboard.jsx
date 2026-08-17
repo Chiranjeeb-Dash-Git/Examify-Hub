@@ -80,10 +80,10 @@ export const StudentDashboard = () => {
 
   const colorMap = {
     iron: '#a1a1aa',
-    gold: '#fbbf24',
-    diamond: '#22d3ee',
-    emerald: '#34d399',
-    redstone: '#f87171',
+    gold: '#fb923c',
+    diamond: '#f97316',
+    emerald: '#fbbf24',
+    redstone: '#ef4444',
     coal: '#52525b'
   };
 
@@ -94,7 +94,7 @@ export const StudentDashboard = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 flex-grow max-w-2xl">
             <div className="flex items-center gap-3">
-              <span className="hud-badge bg-emerald-500/10 text-emerald-300 border border-emerald-400/20">
+              <span className="hud-badge bg-orange-500/10 text-orange-300 border border-orange-400/20">
                 <span className="pulse-dot" /> COMMANDER STATUS ACTIVE
               </span>
               <span className="flex items-center gap-1 text-[10px] font-orbitron tracking-widest text-zinc-500">
@@ -104,7 +104,7 @@ export const StudentDashboard = () => {
             </div>
 
             <h1 className="font-orbitron font-black text-3xl sm:text-5xl leading-none text-white uppercase tracking-tight">
-              Welcome, <span className="grad-neon" style={{ filter: 'drop-shadow(0 0 16px rgba(168,85,247,.45))' }}>{user?.name || 'VoxelCommander'}</span>
+              Welcome, <span className="grad-orange" style={{ filter: 'drop-shadow(0 0 16px rgba(249,115,22,.45))' }}>{user?.name || 'VoxelCommander'}</span>
             </h1>
             <p className="text-sm text-zinc-400">
               Directives loaded. Voxel engine standing by. Execute assessments to gather XP.
@@ -114,17 +114,17 @@ export const StudentDashboard = () => {
             <div className="space-y-1.5 pt-2">
               <div className="flex items-center justify-between text-xs font-orbitron font-bold">
                 <span className="text-zinc-300 flex items-center gap-1.5">
-                  <Swords className="w-4 h-4 text-neon-cyan" />
+                  <Swords className="w-4 h-4 text-neon-orange" />
                   LEVEL {level} EXPLORER
                 </span>
-                <span className="text-neon-cyan">{currentLevelXp} / {xpNeeded} XP</span>
+                <span className="text-neon-orange">{currentLevelXp} / {xpNeeded} XP</span>
               </div>
 
               {/* XP bar */}
               <div className="micro-bar">
                 <div
                   ref={xpFillRef}
-                  className="micro-fill bg-gradient-to-r from-cyan-400 to-violet-500"
+                  className="micro-fill bg-gradient-to-r from-orange-400 to-red-500"
                   style={{ width: `${xpPercentage}%` }}
                 />
               </div>
@@ -137,7 +137,7 @@ export const StudentDashboard = () => {
           </div>
 
           <div className="flex flex-col items-center justify-center p-4 bg-black/40 border border-white/5 clip-hud-sm min-w-[160px] text-center">
-            <Box className="w-8 h-8 text-cyan-300 mb-2 animate-pulse" />
+            <Box className="w-8 h-8 text-orange-300 mb-2 animate-pulse" />
             <span className="text-[9px] font-orbitron tracking-widest text-zinc-500 uppercase">Current Rank</span>
             <span className="text-sm font-orbitron font-black text-white uppercase tracking-widest">Elite Vanguard</span>
           </div>
@@ -154,10 +154,10 @@ export const StudentDashboard = () => {
             <div className="shine" />
             <div className="pop flex flex-col justify-between h-full">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-orbitron text-neon-cyan uppercase tracking-widest font-bold">
+                <span className="text-xs font-orbitron text-neon-orange uppercase tracking-widest font-bold">
                   Accuracy Reactor
                 </span>
-                <Zap className="h-5 w-5 text-cyan-300" />
+                <Zap className="h-5 w-5 text-orange-300" />
               </div>
 
               <div className="my-6 flex items-center justify-center relative">
@@ -167,23 +167,23 @@ export const StudentDashboard = () => {
                     cx="72"
                     cy="72"
                     r="56"
-                    stroke="#22d3ee"
+                    stroke="#fb923c"
                     strokeWidth="8"
                     strokeDasharray={351.8}
                     strokeDashoffset={351.8 - (351.8 * stats.avgScore) / 100}
                     strokeLinecap="square"
                     className="transition-all duration-1000 ease-out"
                     fill="transparent"
-                    style={{ filter: 'drop-shadow(0 0 6px rgba(34,211,238,.4))' }}
+                    style={{ filter: 'drop-shadow(0 0 6px rgba(251,146,60,.4))' }}
                   />
                 </svg>
                 <div className="absolute flex flex-col items-center">
                   <span className="text-4xl font-orbitron font-black text-white">{stats.avgScore}%</span>
-                  <span className="text-[8px] font-orbitron text-neon-cyan tracking-widest uppercase">DIAGNOSTIC OK</span>
+                  <span className="text-[8px] font-orbitron text-neon-orange tracking-widest uppercase">DIAGNOSTIC OK</span>
                 </div>
               </div>
 
-              <div className="flex items-center justify-center gap-1.5 text-xs text-neon-cyan font-orbitron pt-3 border-t border-white/5">
+              <div className="flex items-center justify-center gap-1.5 text-xs text-neon-orange font-orbitron pt-3 border-t border-white/5">
                 <TrendingUp className="h-3.5 w-3.5" />
                 <span>+5% calibration gain this cycle</span>
               </div>
@@ -198,14 +198,14 @@ export const StudentDashboard = () => {
             <div className="shine" />
             <div className="pop flex flex-col justify-between h-full">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-orbitron text-neon-violet uppercase tracking-widest font-bold">
+                <span className="text-xs font-orbitron text-neon-orange uppercase tracking-widest font-bold">
                   Totem of Conquest
                 </span>
-                <Flame className="h-5 w-5 text-violet-400" />
+                <Flame className="h-5 w-5 text-orange-400" />
               </div>
 
               <div className="my-6 flex flex-col items-center justify-center text-center">
-                <span className="text-6xl font-orbitron font-black text-white tracking-tight" style={{ textShadow: '0 0 16px rgba(168,85,247,.4)' }}>
+                <span className="text-6xl font-orbitron font-black text-white tracking-tight" style={{ textShadow: '0 0 16px rgba(249,115,22,.4)' }}>
                   {stats.quizzesPassed}
                 </span>
                 <span className="text-xs text-zinc-500 font-orbitron uppercase tracking-widest mt-1">Quizzes Passed</span>
@@ -214,13 +214,13 @@ export const StudentDashboard = () => {
               <div className="space-y-2 pt-3 border-t border-white/5">
                 <div className="flex items-center justify-between text-xs font-orbitron">
                   <span className="text-zinc-500">Success Rate</span>
-                  <span className="text-neon-violet font-bold">
+                  <span className="text-neon-orange font-bold">
                     {Math.round((stats.quizzesPassed / (stats.totalAttempts || 1)) * 100)}%
                   </span>
                 </div>
                 <div className="micro-bar">
                   <div
-                    className="micro-fill bg-gradient-to-r from-violet-500 to-pink-500 animated"
+                    className="micro-fill bg-gradient-to-r from-orange-500 to-red-500 animated"
                     style={{ width: `${(stats.quizzesPassed / (stats.totalAttempts || 1)) * 100}%` }}
                   />
                 </div>
@@ -236,10 +236,10 @@ export const StudentDashboard = () => {
             <div className="shine" />
             <div className="pop flex flex-col justify-between h-full">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-orbitron text-neon-gold uppercase tracking-widest font-bold">
+                <span className="text-xs font-orbitron text-neon-orange uppercase tracking-widest font-bold">
                   Signal Activity
                 </span>
-                <Activity className="h-5 w-5 text-amber-400" />
+                <Activity className="h-5 w-5 text-orange-400" />
               </div>
 
               <div className="h-36 w-full my-4">
@@ -260,7 +260,7 @@ export const StudentDashboard = () => {
                 </ResponsiveContainer>
               </div>
 
-              <div className="flex items-center justify-between text-xs font-orbitron text-neon-gold pt-3 border-t border-white/5">
+              <div className="flex items-center justify-between text-xs font-orbitron text-neon-orange pt-3 border-t border-white/5">
                 <span>Signal status: High</span>
                 <span className="text-zinc-500">Peak: Wed</span>
               </div>
@@ -275,7 +275,7 @@ export const StudentDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="font-orbitron text-xl font-bold text-white uppercase tracking-wider flex items-center gap-2">
-              <Box className="w-5 h-5 text-cyan-300" />
+              <Box className="w-5 h-5 text-orange-300" />
               Active Assessment Directives
             </h2>
             <p className="text-xs text-zinc-500">Explore active evaluation courses and skill benchmarks</p>
@@ -305,11 +305,11 @@ export const StudentDashboard = () => {
         <div className="shine" />
         <div className="flex items-center justify-between p-6" style={{ borderBottom: '1px solid rgba(255,255,255,.05)' }}>
           <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-            <Activity className="w-4 h-4 text-neon-cyan" />
+            <Activity className="w-4 h-4 text-neon-orange" />
             <span style={{ color: '#fff' }}>ASSESSMENT TELEMETRY LOGS</span>
           </h3>
           <Link to="/history" style={{ textDecoration: 'none' }}>
-            <button className="font-orbitron hover:text-white transition-colors" style={{ fontSize: 10, letterSpacing: '0.25em', color: '#22d3ee', background: 'none', border: 'none', cursor: 'pointer' }}>
+            <button className="font-orbitron hover:text-white transition-colors" style={{ fontSize: 10, letterSpacing: '0.25em', color: '#fb923c', background: 'none', border: 'none', cursor: 'pointer' }}>
               ACCESS ARCHIVE →
             </button>
           </Link>
@@ -337,7 +337,7 @@ export const StudentDashboard = () => {
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="diamond flex items-center justify-center font-orbitron font-black text-black"
-                          style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', fontSize: 10 }}>
+                          style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#fb923c,#ea580c)', fontSize: 10 }}>
                           <span style={{ transform: 'rotate(-45deg)' }}>QU</span>
                         </div>
                         <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>{att.quizTitle}</span>

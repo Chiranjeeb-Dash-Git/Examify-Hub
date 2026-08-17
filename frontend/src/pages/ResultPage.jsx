@@ -3,6 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import confetti from 'canvas-confetti';
 import { HudPlayerLayout } from '../components/HudPlayerLayout';
+import { HudAdminLayout } from '../components/HudAdminLayout';
+import { useAuth } from '../context/AuthContext';
 import { CheckCircle2, XCircle, HelpCircle, Clock, Award, ArrowLeft, RefreshCw, BookOpen, Sparkles, Loader2, Bot } from 'lucide-react';
 import { gsap } from 'gsap';
 
@@ -30,6 +32,7 @@ const NORM = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
 export const ResultPage = () => {
   const { id } = useParams();
+  const { isAdmin } = useAuth();
   const [attempt, setAttempt] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,14 +129,17 @@ export const ResultPage = () => {
   }
 
   const isPassed = attempt.status === 'PASSED';
+  const PageLayout = isAdmin ? HudAdminLayout : HudPlayerLayout;
+  const backToText = isAdmin ? 'Back to Attempts' : 'Back to Dashboard';
+  const backToPath = isAdmin ? '/admin/attempts' : '/dashboard';
 
   return (
-    <HudPlayerLayout>
+    <PageLayout>
       {/* Top Header */}
       <div className="mb-6">
-        <Link to="/dashboard" className="inline-flex items-center gap-2 text-xs font-orbitron text-zinc-500 hover:text-white transition-colors uppercase tracking-wider" style={{ textDecoration: 'none' }}>
+        <Link to={backToPath} className="inline-flex items-center gap-2 text-xs font-orbitron text-zinc-500 hover:text-white transition-colors uppercase tracking-wider" style={{ textDecoration: 'none' }}>
           <ArrowLeft className="h-4 w-4" />
-          <span>Back to Dashboard</span>
+          <span>{backToText}</span>
         </Link>
       </div>
 
@@ -143,7 +149,7 @@ export const ResultPage = () => {
         {/* Glow Halo */}
         <div
           className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-[140px] pointer-events-none ${
-            isPassed ? 'bg-cyan-500/10' : 'bg-rose-500/10'
+            isPassed ? 'bg-orange-500/10' : 'bg-rose-500/10'
           }`}
         />
 
@@ -201,20 +207,32 @@ export const ResultPage = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2 font-orbitron text-xs uppercase tracking-wider font-bold">
-            <Link to={`/quizzes/${attempt.quizId}`} style={{ textDecoration: 'none' }}>
-              <button className="btn-steel clip-hud-sm px-5 py-2.5 flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                <span>Re-attempt Quiz</span>
-              </button>
-            </Link>
-            <Link to="/quizzes" style={{ textDecoration: 'none' }}>
-              <button className="btn-neon clip-hud-sm px-6 py-2.5 text-white flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                <span>Explore More Quizzes</span>
-              </button>
-            </Link>
-          </div>
+          {!isAdmin && (
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2 font-orbitron text-xs uppercase tracking-wider font-bold">
+              <Link to={`/quizzes/${attempt.quizId}`} style={{ textDecoration: 'none' }}>
+                <button className="btn-steel clip-hud-sm px-5 py-2.5 flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span>Re-attempt Quiz</span>
+                </button>
+              </Link>
+              <Link to="/quizzes" style={{ textDecoration: 'none' }}>
+                <button className="btn-neon clip-hud-sm px-6 py-2.5 text-white flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  <span>Explore More Quizzes</span>
+                </button>
+              </Link>
+            </div>
+          )}
+          {isAdmin && (
+            <div className="flex flex-wrap items-center justify-center gap-4 pt-2 font-orbitron text-xs uppercase tracking-wider font-bold">
+              <Link to="/admin/attempts" style={{ textDecoration: 'none' }}>
+                <button className="btn-neon clip-hud-sm px-6 py-2.5 text-white flex items-center gap-2">
+                  <ArrowLeft className="h-4 w-4" />
+                  <span>Back to Run Telemetry</span>
+                </button>
+              </Link>
+            </div>
+          )}
         </div>
         <span className="bk bk-tl" /><span className="bk bk-br" />
       </div>
@@ -279,12 +297,12 @@ export const ResultPage = () => {
                     <button
                       onClick={() => handleFetchAiExplanation(q)}
                       disabled={isAiLoading}
-                      className="hud-badge bg-violet-500/10 text-violet-300 border border-violet-400/20 hover:bg-violet-500/20 cursor-pointer"
+                      className="hud-badge bg-orange-500/10 text-orange-300 border border-orange-400/20 hover:bg-orange-500/20 cursor-pointer"
                     >
                       {isAiLoading ? (
                         <Loader2 className="h-3 w-3 animate-spin mr-1.5" />
                       ) : (
-                        <Sparkles className="h-3 w-3 text-violet-400 mr-1.5" />
+                        <Sparkles className="h-3 w-3 text-orange-400 mr-1.5" />
                       )}
                       <span>Gemini AI Insight</span>
                     </button>
@@ -372,17 +390,17 @@ export const ResultPage = () => {
 
                 {/* Gemini AI Breakdown Insight */}
                 {aiInsight && (
-                  <div className="p-4 rounded-xl bg-violet-950/15 border border-violet-500/20 text-xs space-y-2">
-                    <div className="flex items-center gap-2 text-violet-400 font-bold font-orbitron">
+                  <div className="p-4 rounded-xl bg-orange-950/15 border border-orange-500/20 text-xs space-y-2">
+                    <div className="flex items-center gap-2 text-orange-400 font-bold font-orbitron">
                       <Bot className="h-4 w-4" />
                       <span>GEMINI AI EVALUATION INSIGHT:</span>
                       {aiInsight.conceptKey && (
-                        <span className="text-[9px] px-2 py-0.5 clip-hud bg-violet-500/10 border border-violet-500/20 text-violet-300 uppercase tracking-widest font-bold">
+                        <span className="text-[9px] px-2 py-0.5 clip-hud bg-orange-500/10 border border-orange-500/20 text-orange-300 uppercase tracking-widest font-bold">
                           {aiInsight.conceptKey}
                         </span>
                       )}
                     </div>
-                    <p className="leading-relaxed font-semibold text-violet-200/90 pt-1">{aiInsight.feedback}</p>
+                    <p className="leading-relaxed font-semibold text-orange-200/90 pt-1">{aiInsight.feedback}</p>
                   </div>
                 )}
               </div>
@@ -390,7 +408,7 @@ export const ResultPage = () => {
           })}
         </div>
       </section>
-    </HudPlayerLayout>
+    </PageLayout>
   );
 };
 

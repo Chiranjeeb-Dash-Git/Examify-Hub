@@ -81,8 +81,8 @@ export const LeaderboardPage = () => {
 
   // silver, gold, bronze
   const podiumOrder = [
-    { key: 1, idx: 1, rank: 2, name: 'SILVER', color: 'bg-slate-300 text-black', border: 'border-slate-400/40 glow-violet' },
-    { key: 0, idx: 0, rank: 1, name: 'GOLD', color: 'bg-amber-400 text-black', border: 'border-amber-400/50 glow-gold scale-105' },
+    { key: 1, idx: 1, rank: 2, name: 'SILVER', color: 'bg-slate-300 text-black', border: 'border-slate-400/40 glow-orange' },
+    { key: 0, idx: 0, rank: 1, name: 'GOLD', color: 'bg-amber-400 text-black', border: 'border-amber-400/50 glow-orange scale-105' },
     { key: 2, idx: 2, rank: 3, name: 'BRONZE', color: 'bg-amber-700 text-white', border: 'border-amber-700/40' }
   ];
 
@@ -93,12 +93,12 @@ export const LeaderboardPage = () => {
       {/* ── HERO HEADER ── */}
       <header className="relative mb-12 text-center flex flex-col items-center">
         <div className="flex items-center gap-4 mb-4">
-          <div style={{ height: 1, width: 56, background: 'linear-gradient(90deg, #22d3ee, transparent)' }} />
-          <span className="font-orbitron text-neon-cyan uppercase" style={{ fontSize: 11, letterSpacing: '0.5em' }}>Hall of Fame</span>
+          <div style={{ height: 1, width: 56, background: 'linear-gradient(90deg, #fb923c, transparent)' }} />
+          <span className="font-orbitron text-neon-orange uppercase" style={{ fontSize: 11, letterSpacing: '0.5em' }}>Hall of Fame</span>
           <span className="pulse-dot" />
         </div>
         <h1 className="font-orbitron font-black leading-none mb-4" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}>
-          <span className="chrome-text">CANDIDATE</span> <span className="grad-neon" style={{ filter: 'drop-shadow(0 0 24px rgba(168,85,247,.5))' }}>LEADERBOARD</span>
+          <span className="chrome-text">CANDIDATE</span> <span className="grad-orange" style={{ filter: 'drop-shadow(0 0 24px rgba(249,115,22,.5))' }}>LEADERBOARD</span>
         </h1>
         <p className="text-zinc-400 text-lg tracking-wide max-w-2xl">
           Top candidate telemetry ranked by accuracy, average score, and completed arena directives.
@@ -132,7 +132,7 @@ export const LeaderboardPage = () => {
         <div className="shine" />
         <div className="p-6 border-b border-white/5">
           <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-            <Trophy className="w-4 h-4 text-neon-cyan" />
+            <Trophy className="w-4 h-4 text-neon-orange" />
             <span style={{ color: '#fff' }}>FULL LEADERBOARD TELEMETRY</span>
           </h3>
         </div>
@@ -177,7 +177,7 @@ export const LeaderboardPage = () => {
                     <td style={{ color: '#71717a' }}>{student.quizzesAttempted}</td>
                     <td className="font-orbitron text-zinc-300 font-bold">{student.highestScore}%</td>
                     <td style={{ textAlign: 'right' }}>
-                      <span className="font-orbitron font-black text-neon-cyan text-lg">
+                      <span className="font-orbitron font-black text-neon-orange text-lg">
                         {student.averageScore}%
                       </span>
                     </td>

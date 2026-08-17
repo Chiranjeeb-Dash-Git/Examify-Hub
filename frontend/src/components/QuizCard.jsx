@@ -45,7 +45,7 @@ export const QuizCard = ({ quiz }) => {
           ) : (
             <span className="q-thumb pop select-none">{quiz.thumbnail || '⚡'}</span>
           )}
-          <span className="absolute top-3 left-3 hud-badge bg-black/60 text-cyan-300 border border-cyan-400/30 flex items-center gap-1.5">
+          <span className="absolute top-3 left-3 hud-badge bg-black/60 text-orange-300 border border-orange-400/30 flex items-center gap-1.5">
             <HelpCircle className="w-3 h-3" />
             {quiz.categoryName || 'General'}
           </span>
@@ -73,11 +73,11 @@ export const QuizCard = ({ quiz }) => {
               <div className="font-orbitron text-[7px] tracking-[.2em] text-zinc-500 uppercase">Questions</div>
             </div>
             <div className="bg-black/30 border border-white/5 clip-hud-sm p-2 text-center">
-              <div className="font-orbitron font-black text-sm text-neon-cyan">{quiz.duration}<span className="text-[9px] text-zinc-500">m</span></div>
+              <div className="font-orbitron font-black text-sm text-neon-orange">{quiz.duration}<span className="text-[9px] text-zinc-500">m</span></div>
               <div className="font-orbitron text-[7px] tracking-[.2em] text-zinc-500 uppercase">Duration</div>
             </div>
             <div className="bg-black/30 border border-white/5 clip-hud-sm p-2 text-center">
-              <div className="font-orbitron font-black text-sm text-neon-violet">{quiz.passingScore}%</div>
+              <div className="font-orbitron font-black text-sm text-neon-orange">{quiz.passingScore}%</div>
               <div className="font-orbitron text-[7px] tracking-[.2em] text-zinc-500 uppercase">Pass Score</div>
             </div>
           </div>

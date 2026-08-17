@@ -39,7 +39,7 @@ export const AdminQuestionsPage = () => {
       const qQuiz = await api.getQuizById(quizId);
       setQuiz(qQuiz);
       if (qQuiz) setAiTopic(qQuiz.title);
-      const qList = await api.getQuestionsForQuiz(quizId);
+      const qList = await api.getQuestionsForQuiz(quizId, { skipAiGeneration: true });
       setQuestions(qList);
     } catch (e) {
       console.error(e);

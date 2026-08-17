@@ -2,7 +2,7 @@
 
 A web-based online quiz and assessment platform ("Aetheris") featuring student and admin portals, automated scoring, countdown timers, performance telemetry, candidate leaderboards, and administrative management.
 
-![Aetheris Assessment Platform](https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80)
+![Examify-Hub | Online Assessment Platform](https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80)
 
 ---
 

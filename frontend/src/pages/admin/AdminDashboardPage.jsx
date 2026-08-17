@@ -9,8 +9,9 @@ import {
   Users, BookOpen, Globe, HelpCircle, ListChecks,
   Gauge, CheckCircle2, XCircle, TrendingUp, TrendingDown,
   Plus, BarChart3, Bell, ChevronDown,
-  Zap, ShieldHalf, Flame, UserPlus, PieChart, LogOut, Shield
+  Zap, Flame, PieChart, LogOut, Cpu, Activity, Pencil, Quote,
 } from 'lucide-react';
+import { CursorTrackingRobot } from '../../components/CursorTrackingRobot';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -130,29 +131,78 @@ function StatCard({ icon: Icon, label, value, color, barColor, barW, trend, up, 
   }, [value, revealDelay, barW]);
 
   return (
-    <div ref={cardRef} className="brackets" style={{ opacity: 0 }}>
-      <TiltCard className="metal clip-hud p-5 w-full h-full">
+    <div ref={cardRef} style={{ opacity: 0 }}>
+      <TiltCard className="metal clip-hud px-2.5 py-2 w-full h-full" maxDeg={5}>
         <div className="pop">
-          <div className={`w-9 h-9 diamond ${color.bg} border ${color.border} flex items-center justify-center mb-4`}>
-            <Icon className={`w-4 h-4 ${color.icon}`} style={{ transform: 'rotate(-45deg)' }} />
+          <div className="flex items-start justify-between gap-1.5 mb-1.5">
+            <div className={`w-7 h-7 diamond ${color.bg} border ${color.border} flex items-center justify-center shrink-0`}>
+              <Icon className={`w-3 h-3 ${color.icon}`} style={{ transform: 'rotate(-45deg)' }} />
+            </div>
+            <div className={`text-[8px] font-bold flex items-center gap-0.5 text-right leading-tight ${up === true ? 'text-emerald-400' : up === false ? 'text-red-400' : 'text-zinc-500'}`}>
+              {up === true && <TrendingUp className="w-2 h-2" />}
+              {up === false && <TrendingDown className="w-2 h-2" />}
+              <span>{trend}</span>
+            </div>
           </div>
-          <div className="font-orbitron text-2xl font-black text-white">
-            <span ref={countRef}>0</span>{suf && <span className="text-sm text-zinc-500">{suf}</span>}
+          <div className="font-orbitron text-lg font-black text-white leading-tight">
+            <span ref={countRef}>0</span>{suf && <span className="text-[11px] text-zinc-500 ml-0.5">{suf}</span>}
           </div>
-          <div className="font-orbitron text-[8.5px] tracking-[.2em] text-zinc-500 uppercase mt-1">{label}</div>
-          <div className="micro-bar mt-3">
+          <div className="font-orbitron text-[7px] tracking-[.18em] text-zinc-500 uppercase mt-0.5 leading-tight">{label}</div>
+          <div className="micro-bar mt-1" style={{ height: 3 }}>
             <div ref={barRef} className={`micro-fill ${barColor}`} style={{ width: barW }} />
-          </div>
-          <div className={`mt-2 text-xs font-bold flex items-center gap-1 ${up === true ? 'text-emerald-400' : up === false ? 'text-red-400' : 'text-zinc-500'}`}>
-            {up === true && <TrendingUp className="w-3 h-3" />}
-            {up === false && <TrendingDown className="w-3 h-3" />}
-            {trend}
           </div>
         </div>
       </TiltCard>
-      <span className="bk bk-tl" /><span className="bk bk-br" />
     </div>
   );
+}
+
+/* ── Animated typewriter hook ── */
+function useTypewriter(text, { speed = 28, startDelay = 500, loopDelay = 3500, loop = true } = {}) {
+  const [out, setOut] = useState('');
+  const [phase, setPhase] = useState('idle');
+  const idxRef = useRef(0);
+  const tRef = useRef(null);
+  const loopRef = useRef(loop);
+  useEffect(() => {
+    loopRef.current = loop;
+    setOut('');
+    idxRef.current = 0;
+    setPhase('waiting');
+    const start = setTimeout(() => {
+      setPhase('typing');
+      const tick = () => {
+        idxRef.current++;
+        if (idxRef.current <= text.length) {
+          setOut(text.slice(0, idxRef.current));
+          const ch = text[idxRef.current - 1] || '';
+          const variance = /[.?!,\n]/.test(ch) ? speed * 4 : /\s/.test(ch) ? speed * 0.4 : speed;
+          tRef.current = setTimeout(tick, variance + (Math.random() * speed * 0.5));
+        } else {
+          setPhase('paused');
+          if (loopRef.current) {
+            tRef.current = setTimeout(() => {
+              setPhase('deleting');
+              const del = () => {
+                idxRef.current = Math.max(0, idxRef.current - 1);
+                setOut(text.slice(0, idxRef.current));
+                if (idxRef.current === 0) {
+                  setPhase('waiting');
+                  tRef.current = setTimeout(() => { setPhase('typing'); tick(); }, startDelay * 0.6);
+                } else {
+                  tRef.current = setTimeout(del, speed * 0.35);
+                }
+              };
+              del();
+            }, loopDelay);
+          }
+        }
+      };
+      tick();
+    }, startDelay);
+    return () => { clearTimeout(start); clearTimeout(tRef.current); };
+  }, [text, speed, startDelay, loopDelay]);
+  return { text: out, phase };
 }
 
 /* ══════════════════ MAIN COMPONENT ══════════════════ */
@@ -166,10 +216,17 @@ export const AdminDashboardPage = () => {
   const [users, setUsers] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
 
+  const aboutText = `Examify Hub is a next-generation online assessment platform designed to reimagine how organizations, educators, and institutions measure learning outcomes. We blend intelligent automation with a polished, user-centric experience so that every exam feels rigorous yet effortless, and every result carries a clear path toward growth.
+
+Our platform empowers exam creators to design comprehensive assessments in minutes, while giving learners the fair, focused, and supportive environment they need to perform at their best. With built-in proctor intelligence, performance analytics that surface the real story behind every score, and a modern experience crafted for engagement, Examify Hub raises the standard for what an assessment platform can deliver — today, and for the next wave of digital learning.
+
+Examify Hub isn't just about running exams. It's about building trust in evaluation, unlocking potential, and turning every assessment into a stepping stone toward measurable outcomes that matter.`;
+
+  const typed = useTypewriter(aboutText, { speed: 22, startDelay: 700, loopDelay: 4500, loop: true });
+
   const chTime = useRef(null);
   const chPf   = useRef(null);
   const chPop  = useRef(null);
-  const chReg  = useRef(null);
   const charts = useRef([]);
 
   const isActive = (path) => location.pathname === path || location.pathname.startsWith(path + '/');
@@ -250,22 +307,6 @@ export const AdminDashboardPage = () => {
         type: 'bar',
         data: { labels: top5.map(q => q.title) || ['No Data'], datasets: [{ data: top5.map(q => q.count) || [0], backgroundColor: ['#22d3ee', '#a855f7', '#fbbf24', '#f472b6', '#34d399'], borderRadius: 3, barThickness: 22 }] },
         options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.04)' }, ticks: { precision: 0 } }, y: { grid: { display: false }, ticks: { color: '#d4d4d8', font: { weight: '700' } } } } }
-      }));
-    }
-
-    // 4. Registrations (10 days)
-    const regLabels = [], regCounts = [];
-    for (let i = 9; i >= 0; i--) {
-      const d = new Date(now); d.setDate(now.getDate() - i);
-      const ds = d.toISOString().split('T')[0];
-      regLabels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
-      regCounts.push(users.filter(u => u.role === 'STUDENT' && u.registrationDate === ds).length);
-    }
-    if (chReg.current) {
-      charts.current.push(new Chart(chReg.current, {
-        type: 'line',
-        data: { labels: regLabels, datasets: [{ data: regCounts, borderColor: '#a855f7', backgroundColor: c => glowFill(c, '#a855f7'), fill: true, tension: .45, borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#a855f7', pointBorderColor: '#000', pointHoverRadius: 7 }] },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,.04)' }, ticks: { precision: 0 } }, x: { grid: { display: false } } } }
       }));
     }
 
@@ -397,122 +438,324 @@ export const AdminDashboardPage = () => {
       </nav>
 
       {/* ═══ MAIN CONTENT ═══ */}
-      <main style={{ position: 'relative', zIndex: 10, paddingTop: 120, paddingBottom: 96, paddingLeft: 20, paddingRight: 20, maxWidth: 1400, margin: '0 auto', perspective: 1600 }}>
+      <main style={{ position: 'relative', zIndex: 10, paddingTop: 88, paddingBottom: 40, paddingLeft: 20, paddingRight: 20, maxWidth: 1680, margin: '0 auto', perspective: 1600 }}>
 
-        {/* ── HERO HEADER ── */}
-        <header style={{ position: 'relative', marginBottom: 48 }}>
-          {/* Floating orb */}
-          <div className="absolute hidden xl:flex items-center justify-center float-y" style={{ top: -40, right: 0 }}>
-            <div className="diamond glow-cyan flex items-center justify-center" style={{ width: 128, height: 128, background: 'linear-gradient(135deg, rgba(34,211,238,.15), rgba(168,85,247,.15))', border: '1px solid rgba(34,211,238,.2)' }}>
-              <ShieldHalf className="w-10 h-10" style={{ transform: 'rotate(-45deg)', color: 'rgba(34,211,238,.8)' }} />
+        {/* ═══════════ TWO COLUMN LAYOUT ═══════════ */}
+        <div className="grid gap-0" style={{ gridTemplateColumns: 'minmax(180px, 190px) minmax(0, 1fr)', alignItems: 'start', columnGap: 12 }}>
+
+          {/* ═══ LEFT COLUMN: STAT TELEMETRY SIDEBAR ═══ */}
+          <aside className="space-y-1 sticky" style={{ top: 80 }}>
+
+            {/* Sidebar header label */}
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <div style={{ height: 1, flex: 1, background: 'linear-gradient(90deg, transparent, rgba(34,211,238,.6))' }} />
+              <span className="font-orbitron text-[7.5px] tracking-[.4em] uppercase text-neon-cyan whitespace-nowrap">Sys Telemetry</span>
             </div>
-          </div>
 
-          <div className="flex items-center gap-4 mb-4">
-            <div style={{ height: 1, width: 56, background: 'linear-gradient(90deg, #22d3ee, transparent)' }} />
-            <span className="font-orbitron text-neon-cyan uppercase" style={{ fontSize: 11, letterSpacing: '0.5em' }}>Admin Control Panel</span>
-            <span className="pulse-dot" />
-          </div>
-
-          <h1 className="font-orbitron font-black leading-none mb-4" style={{ fontSize: 'clamp(1.8rem, 4.5vw, 3.2rem)', letterSpacing: '-0.02em' }}>
-            <span className="chrome-text">COMMAND</span>{' '}
-            <span className="grad-neon" style={{ filter: 'drop-shadow(0 0 24px rgba(168,85,247,.5))' }}>CENTER</span>
-          </h1>
-
-          <div className="flex flex-wrap items-center justify-between gap-5">
-            <p style={{ color: '#a1a1aa', fontSize: 18, letterSpacing: '0.04em' }}>
-              Full platform oversight · <span style={{ color: '#e4e4e7', fontWeight: 600 }}>{today}</span> · Region{' '}
-              <span className="text-neon-cyan font-bold">AP-SOUTH</span>
-            </p>
-            <div className="flex gap-3">
-              <Link to="/admin/quizzes/new">
-                <button className="btn-neon clip-hud-sm flex items-center gap-2 font-orbitron font-bold text-white"
-                  style={{ padding: '12px 28px', fontSize: 12, letterSpacing: '0.2em' }}>
-                  <Plus className="w-4 h-4" /> NEW QUIZ
-                </button>
-              </Link>
+            {/* Stat cards stacked compact */}
+            <div className="space-y-1">
+              {statCards.map((card, i) => (
+                <StatCard key={i} {...card} revealDelay={i * 0.04} />
+              ))}
             </div>
-          </div>
-        </header>
 
-        <div className="hex-divider" style={{ marginBottom: 48 }} />
+            {/* Sidebar footer strip */}
+            <div className="mt-1.5 pt-0.5" style={{ opacity: 0 }}>
+              <TiltCard className="metal clip-hud px-2 py-1.5 w-full text-center" maxDeg={5}>
+                <div className="space-y-0.5">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <span className="pulse-dot bg-emerald-400" style={{ width: 5, height: 5 }} />
+                    <span className="font-orbitron text-[7px] tracking-[.35em] uppercase text-zinc-400">Uplink Stable</span>
+                  </div>
+                  <div className="font-orbitron text-[8.5px] tracking-widest text-zinc-500">NODE-01 · {new Date().toLocaleTimeString('en-US', { hour12: false })}</div>
+                </div>
+              </TiltCard>
+            </div>
 
-        {/* ── 9-STAT CARDS GRID ── */}
-        <section className="grid gap-4 mb-12"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', perspective: 1200 }}>
-          {statCards.map((card, i) => (
-            <StatCard key={i} {...card} revealDelay={i * 0.055} />
-          ))}
-        </section>
+          </aside>
 
-        {/* ── CHART PANELS 2×2 ── */}
-        <section className="grid gap-6 mb-12" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+          {/* ═══ RIGHT COLUMN: COMMAND CENTER + ANALYTICS ═══ */}
+          <section className="min-w-0 space-y-2">
 
-          {/* Attempts over time */}
-          <div className="chart-panel brackets" style={{ opacity: 0 }}>
-            <TiltCard className="metal clip-hud p-6 w-full">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-                  <TrendingUp className="w-4 h-4 text-neon-cyan" />
-                  <span style={{ color: '#fff' }}>ATTEMPTS OVER TIME</span>
-                </h3>
-                <span className="hud-badge" style={{ background: 'rgba(34,211,238,.1)', color: '#67e8f9', border: '1px solid rgba(34,211,238,.25)' }}>◉ Live Feed</span>
+            {/* ── HERO HEADER ── */}
+            <header style={{ position: 'relative' }}>
+
+              <div className="flex items-center gap-4 mb-1">
+                <div style={{ height: 1, width: 56, background: 'linear-gradient(90deg, #22d3ee, transparent)' }} />
+                <span className="font-orbitron text-neon-cyan uppercase" style={{ fontSize: 11, letterSpacing: '0.5em' }}>Admin Control Panel</span>
+                <span className="pulse-dot" />
               </div>
-              <div style={{ height: 256 }}><canvas ref={chTime} /></div>
-            </TiltCard>
-            <Brackets all />
-          </div>
 
-          {/* Pass/Fail ratio */}
-          <div className="chart-panel brackets" style={{ opacity: 0 }}>
-            <TiltCard className="metal clip-hud p-6 w-full">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-                  <PieChart className="w-4 h-4 text-neon-violet" />
-                  <span style={{ color: '#fff' }}>PASS / FAIL RATIO</span>
-                </h3>
-                <span className="hud-badge" style={{ background: 'rgba(16,185,129,.1)', color: '#6ee7b7', border: '1px solid rgba(52,211,153,.25)' }}>{passRate}% Pass</span>
+              <div className="flex flex-wrap items-end justify-between gap-3 pt-1">
+                <div>
+                  <h1 className="font-orbitron font-black leading-none mb-1" style={{ fontSize: 'clamp(1.8rem, 4.5vw, 2.7rem)', letterSpacing: '-0.02em' }}>
+                    <span className="chrome-text">COMMAND</span>{' '}
+                    <span className="grad-neon" style={{ filter: 'drop-shadow(0 0 24px rgba(168,85,247,.5))' }}>CENTER</span>
+                  </h1>
+                  <p style={{ color: '#a1a1aa', fontSize: 13.5, letterSpacing: '0.04em' }}>
+                    Full platform oversight · <span style={{ color: '#e4e4e7', fontWeight: 600 }}>{today}</span> · Region{' '}
+                    <span className="text-neon-cyan font-bold">AP-SOUTH</span>
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <Link to="/admin/quizzes/new">
+                    <button className="btn-neon clip-hud-sm flex items-center gap-2 font-orbitron font-bold text-white"
+                      style={{ padding: '9px 22px', fontSize: 11, letterSpacing: '0.2em' }}>
+                      <Plus className="w-3.5 h-3.5" /> NEW QUIZ
+                    </button>
+                  </Link>
+                </div>
               </div>
-              <div style={{ height: 256 }}><canvas ref={chPf} /></div>
-            </TiltCard>
-            <Brackets all />
-          </div>
+            </header>
 
-          {/* Popular quizzes */}
-          <div className="chart-panel brackets" style={{ opacity: 0 }}>
-            <TiltCard className="metal clip-hud p-6 w-full">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-                  <Flame className="w-4 h-4 text-neon-gold" />
-                  <span style={{ color: '#fff' }}>MOST POPULAR QUIZZES</span>
-                </h3>
-                <span className="hud-badge" style={{ background: 'rgba(245,158,11,.1)', color: '#fcd34d', border: '1px solid rgba(251,191,36,.25)' }}>Top 5</span>
+            <div className="hex-divider" style={{ marginBottom: 0, marginTop: 2 }} />
+
+            {/* ── PRIMARY CHART: ATTEMPTS OVER TIME (FULL WIDTH) — compact ── */}
+            <div className="chart-panel" style={{ opacity: 0 }}>
+              <TiltCard className="metal clip-hud px-3 py-2.5 w-full" maxDeg={3}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-orbitron font-bold flex items-center gap-1.5" style={{ fontSize: 11, letterSpacing: '0.15em' }}>
+                    <TrendingUp className="w-3 h-3 text-neon-cyan" />
+                    <span style={{ color: '#fff' }}>ATTEMPTS OVER TIME</span>
+                  </h3>
+                  <span className="hud-badge" style={{ padding: '2px 7px', fontSize: 8.5, background: 'rgba(34,211,238,.1)', color: '#67e8f9', border: '1px solid rgba(34,211,238,.25)' }}>◉ Live Feed</span>
+                </div>
+                <div style={{ height: 190 }}><canvas ref={chTime} /></div>
+              </TiltCard>
+            </div>
+
+            {/* ── SECOND ROW: PASS/FAIL + POPULAR QUIZZES + AI CO-PILOT ROBOT (3 cols edge-to-edge) ── */}
+            <div className="grid gap-0" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(180px, 228px)', alignItems: 'stretch', columnGap: 12 }}>
+
+              {/* Pass/Fail ratio */}
+              <div className="chart-panel" style={{ opacity: 0 }}>
+                <TiltCard className="metal clip-hud px-3 py-2.5 w-full h-full" maxDeg={3}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-orbitron font-bold flex items-center gap-1.5" style={{ fontSize: 11, letterSpacing: '0.15em' }}>
+                      <PieChart className="w-3 h-3 text-neon-violet" />
+                      <span style={{ color: '#fff' }}>PASS / FAIL RATIO</span>
+                    </h3>
+                    <span className="hud-badge" style={{ padding: '2px 7px', fontSize: 8.5, background: 'rgba(16,185,129,.1)', color: '#6ee7b7', border: '1px solid rgba(52,211,153,.25)' }}>{passRate}% Pass</span>
+                  </div>
+                  <div style={{ height: 200 }}><canvas ref={chPf} /></div>
+                </TiltCard>
               </div>
-              <div style={{ height: 256 }}><canvas ref={chPop} /></div>
-            </TiltCard>
-            <Brackets all />
-          </div>
 
-          {/* Student registrations */}
-          <div className="chart-panel brackets" style={{ opacity: 0 }}>
-            <TiltCard className="metal clip-hud p-6 w-full">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-                  <UserPlus className="w-4 h-4 text-neon-cyan" />
-                  <span style={{ color: '#fff' }}>STUDENT REGISTRATIONS</span>
-                </h3>
-                <span className="hud-badge" style={{ background: 'rgba(16,185,129,.1)', color: '#6ee7b7', border: '1px solid rgba(52,211,153,.25)' }}>+34 Month</span>
+              {/* Popular quizzes */}
+              <div className="chart-panel" style={{ opacity: 0 }}>
+                <TiltCard className="metal clip-hud px-3 py-2.5 w-full h-full" maxDeg={3}>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="font-orbitron font-bold flex items-center gap-1.5" style={{ fontSize: 11, letterSpacing: '0.15em' }}>
+                      <Flame className="w-3 h-3 text-neon-gold" />
+                      <span style={{ color: '#fff' }}>MOST POPULAR QUIZZES</span>
+                    </h3>
+                    <span className="hud-badge" style={{ padding: '2px 7px', fontSize: 8.5, background: 'rgba(245,158,11,.1)', color: '#fcd34d', border: '1px solid rgba(251,191,36,.25)' }}>Top 5</span>
+                  </div>
+                  <div style={{ height: 200 }}><canvas ref={chPop} /></div>
+                </TiltCard>
               </div>
-              <div style={{ height: 256 }}><canvas ref={chReg} /></div>
-            </TiltCard>
-            <Brackets all />
-          </div>
 
-        </section>
+              {/* Robot companion panel (3rd column, same row — no empty space) */}
+              <div className="chart-panel relative" style={{ opacity: 0 }}>
+                <TiltCard className="metal clip-hud w-full h-full" maxDeg={2} style={{ padding: '7px 5px 8px' }}>
+                  <div className="w-full h-full flex flex-col items-center justify-start">
+                    <div className="w-full flex items-center justify-between px-1 mb-0">
+                      <h3 className="font-orbitron font-bold flex items-center gap-1" style={{ fontSize: 8.5, letterSpacing: '0.2em' }}>
+                        <Cpu className="w-2.5 h-2.5 text-neon-cyan" />
+                        <span style={{ color: '#fff' }}>AI CO-PILOT</span>
+                      </h3>
+                      <span className="hud-badge flex items-center gap-0.5" style={{ padding: '1.5px 5px', background: 'rgba(168,85,247,.1)', color: '#c4b5fd', border: '1px solid rgba(168,85,247,.25)', fontSize: 7 }}>
+                        <Activity className="w-1.5 h-1.5 animate-pulse" /> LIVE
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-center flex-1" style={{ marginTop: -3 }}>
+                      <CursorTrackingRobot size={200} />
+                    </div>
+                    <div className="mt-0 w-full px-1 grid grid-cols-3 gap-0.5">
+                      <div className="text-center rounded-md bg-black/30 border border-white/5 py-0.5 px-0">
+                        <div className="font-orbitron text-[7px] tracking-widest text-zinc-500 uppercase">Mode</div>
+                        <div className="font-orbitron text-[8.5px] font-black text-cyan-300">AWARE</div>
+                      </div>
+                      <div className="text-center rounded-md bg-black/30 border border-white/5 py-0.5 px-0">
+                        <div className="font-orbitron text-[7px] tracking-widest text-zinc-500 uppercase">Sync</div>
+                        <div className="font-orbitron text-[8.5px] font-black text-fuchsia-300">98%</div>
+                      </div>
+                      <div className="text-center rounded-md bg-black/30 border border-white/5 py-0.5 px-0">
+                        <div className="font-orbitron text-[7px] tracking-widest text-zinc-500 uppercase">Visor</div>
+                        <div className="font-orbitron text-[8.5px] font-black text-amber-300">ON</div>
+                      </div>
+                    </div>
+                  </div>
+                </TiltCard>
+              </div>
+
+            </div>
+
+            {/* ── ABOUT / PROJECT STORY (clean industry-style with animated writing + pen) ── */}
+            <div style={{ marginTop: 14, opacity: 0 }} className="chart-panel">
+              <div className="relative">
+                <style>{`
+                  @keyframes pen-write-bob {
+                    0%, 100% { transform: translate(0, 0) rotate(-18deg); }
+                    45% { transform: translate(0, -1px) rotate(-14deg); }
+                    55% { transform: translate(0.5px, 1px) rotate(-20deg); }
+                  }
+                  @keyframes pen-tap {
+                    0%, 100% { opacity: 0.4; }
+                    50% { opacity: 1; }
+                  }
+                  @keyframes caret-blink {
+                    0%, 49% { opacity: 1; }
+                    50%, 100% { opacity: 0; }
+                  }
+                  @keyframes accent-line {
+                    0% { transform: scaleX(0); transform-origin: left; }
+                    100% { transform: scaleX(1); transform-origin: left; }
+                  }
+                  .pen-writing { animation: pen-write-bob 0.55s ease-in-out infinite; transform-origin: 20% 80%; }
+                  .pen-tap     { animation: pen-tap 1.1s ease-in-out infinite; }
+                  .caret-blink { animation: caret-blink 0.95s steps(2,end) infinite; }
+                  .about-accent-line {
+                    height: 2px;
+                    background: linear-gradient(90deg, #22d3ee 0%, #a855f7 60%, transparent 100%);
+                    transform-origin: left;
+                    animation: accent-line 1.4s cubic-bezier(.22,.61,.36,1) 0.2s both;
+                  }
+                `}</style>
+
+                {/* Header row */}
+                <div className="flex items-center justify-between gap-4 mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center" style={{ width: 34, height: 34, borderRadius: 8, background: 'linear-gradient(135deg, rgba(34,211,238,.14), rgba(168,85,247,.14))', border: '1px solid rgba(34,211,238,.22)' }}>
+                      <Quote className="w-4 h-4 text-cyan-300" />
+                    </div>
+                    <div>
+                      <div className="font-orbitron uppercase tracking-[.32em] text-zinc-500" style={{ fontSize: 9.5 }}>About the Platform</div>
+                      <div className="font-orbitron font-black text-white uppercase tracking-[.14em]" style={{ fontSize: 16 }}>
+                        <span className="text-neon-cyan">EXAMIFY</span> · <span className="text-neon-violet">HUB</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Animated pen (top-right) */}
+                  <div className="hidden sm:flex items-center gap-2 pr-1" style={{ pointerEvents: 'none' }}>
+                    <div className="relative">
+                      <div className={`${typed.phase === 'typing' ? 'pen-writing' : 'pen-tap'}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', filter: 'drop-shadow(0 6px 10px rgba(168,85,247,.35))' }}>
+                        <div
+                          className="diamond"
+                          style={{
+                            width: 30,
+                            height: 30,
+                            background: 'linear-gradient(135deg, #22d3ee 0%, #a855f7 60%, #ec4899 100%)',
+                            border: '1px solid rgba(255,255,255,.2)',
+                          }}
+                        >
+                          <Pencil className="w-4 h-4 text-white" style={{ transform: 'rotate(-45deg)' }} />
+                        </div>
+                      </div>
+                      {/* Pen tip mini dot */}
+                      <div
+                        className={`absolute rounded-full ${typed.phase === 'typing' ? 'pen-tap' : ''}`}
+                        style={{
+                          width: 4, height: 4, background: '#22d3ee',
+                          bottom: -2, left: -4,
+                          boxShadow: '0 0 8px #22d3ee',
+                        }}
+                      />
+                    </div>
+                    <div className="text-right leading-tight">
+                      <div className="font-orbitron uppercase tracking-[.3em] text-zinc-500" style={{ fontSize: 8 }}>Currently Writing</div>
+                      <div className="font-orbitron font-black text-neon-cyan" style={{ fontSize: 12 }}>
+                        {typed.phase === 'typing' && '… crafting the story'}
+                        {typed.phase === 'paused' && '✓ Full narrative loaded'}
+                        {typed.phase === 'deleting' && '↻ Rewinding'}
+                        {typed.phase === 'waiting' && '● Standby'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="about-accent-line mb-4" />
+
+                {/* Paragraph with smooth writing effect */}
+                <div
+                  className="relative"
+                  style={{
+                    padding: '8px 4px 10px 10px',
+                    fontSize: 14.5,
+                    lineHeight: 1.85,
+                    color: '#cbd5e1',
+                    fontWeight: 500,
+                    letterSpacing: 0.2,
+                  }}
+                >
+                  {typed.text.split('\n').map((para, i, arr) => (
+                    <React.Fragment key={i}>
+                      <p style={{ textIndent: '1.4em', margin: 0 }}>
+                        {para}
+                        {i === arr.length - 1 && typed.phase === 'typing' && (
+                          <span
+                            aria-hidden
+                            className="caret-blink inline-block align-middle"
+                            style={{
+                              width: 2,
+                              height: '1.05em',
+                              marginLeft: 3,
+                              marginBottom: 2,
+                              background: 'linear-gradient(180deg, #22d3ee, #a855f7)',
+                              boxShadow: '0 0 8px rgba(34,211,238,.7)',
+                            }}
+                          />
+                        )}
+                      </p>
+                      {i < arr.length - 1 && <div style={{ height: 10 }} />}
+                    </React.Fragment>
+                  ))}
+
+                  {/* Pen icon repositioned next to end of paragraph when writing (inline follow pen) */}
+                  <span className="inline-block align-middle ml-1 sm:hidden">
+                    <Pencil className={`w-3.5 h-3.5 text-cyan-300 ${typed.phase === 'typing' ? 'pen-writing' : 'pen-tap'}`} />
+                  </span>
+                </div>
+
+                {/* Bottom signature + progress */}
+                <div className="mt-2 flex items-end justify-between gap-3 flex-wrap">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ width: 32, height: 1, background: 'linear-gradient(90deg, rgba(34,211,238,.8), transparent)' }} />
+                    <div className="font-orbitron" style={{ fontSize: 10.5, letterSpacing: '.18em', color: '#a1a1aa' }}>
+                      <span style={{ color: '#e4e4e7', fontWeight: 800 }}>Product Narrative</span> · v2.6 Release
+                    </div>
+                  </div>
+
+                  {/* Progress meter */}
+                  <div className="flex items-center gap-2" style={{ minWidth: 180 }}>
+                    <div className="font-orbitron text-zinc-500" style={{ fontSize: 9, letterSpacing: '.3em' }}>WRITE</div>
+                    <div className="flex-1 relative rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(255,255,255,.05)' }}>
+                      <div
+                        className="rounded-full"
+                        style={{
+                          width: `${Math.round((typed.text.length / Math.max(1, aboutText.length)) * 100)}%`,
+                          height: '100%',
+                          background: 'linear-gradient(90deg, #22d3ee, #a855f7, #ec4899)',
+                          boxShadow: '0 0 10px rgba(34,211,238,.5)',
+                          transition: 'width 120ms linear',
+                        }}
+                      />
+                    </div>
+                    <div className="font-orbitron text-zinc-300 font-black" style={{ fontSize: 9.5, minWidth: 32, textAlign: 'right' }}>
+                      {Math.round((typed.text.length / Math.max(1, aboutText.length)) * 100)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </section>
+        </div>
 
         {/* ── FOOTER STRIP ── */}
-        <div className="hex-divider" style={{ marginTop: 56, marginBottom: 24 }} />
-        <div className="flex flex-wrap items-center justify-between gap-3 font-orbitron" style={{ fontSize: 10, letterSpacing: '0.3em', color: '#3f3f46', textTransform: 'uppercase' }}>
+        <div className="hex-divider" style={{ marginTop: 14, marginBottom: 8 }} />
+        <div className="flex flex-wrap items-center justify-between gap-3 font-orbitron" style={{ fontSize: 9, letterSpacing: '0.3em', color: '#3f3f46', textTransform: 'uppercase' }}>
           <span>◤ QuizForge Command Center</span>
           <span className="flex items-center gap-2"><span className="pulse-dot" /> All Systems Operational</span>
           <span>Build 2.6.0 ◢</span>

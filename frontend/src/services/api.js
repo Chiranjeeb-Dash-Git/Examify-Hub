@@ -259,7 +259,8 @@ export const api = {
   },
 
   // Questions
-  getQuestionsForQuiz: async (quizId) => {
+  getQuestionsForQuiz: async (quizId, opts = {}) => {
+    const skipAiGeneration = !!opts.skipAiGeneration;
     const TEXT_KEY_BLACKLIST = new Set([
       'id', 'quizId', 'quiz_id', 'difficulty', 'status', 'createdAt', 'updatedAt',
       'created_at', 'updated_at', 'categoryId', 'category_id', 'type', 'format',
@@ -320,7 +321,7 @@ export const api = {
         setStorage('questions', merged);
         console.log('[getQuestionsForQuiz] SERVER NORMALIZED:', normalizedServer);
 
-        if (normalizedServer.length === 0) {
+        if (normalizedServer.length === 0 && !skipAiGeneration) {
           console.log(`[getQuestionsForQuiz] Server returned 0 questions. Triggering Gemini AI auto-generation...`);
           try {
             const allQuizzes = getStorage('quizzes', INITIAL_QUIZZES);
@@ -367,7 +368,7 @@ export const api = {
     const normalizedLocal = quizQuestions.map(normalizeQuestion);
     console.log('[getQuestionsForQuiz] LOCAL NORMALIZED:', normalizedLocal);
 
-    if (normalizedLocal.length === 0) {
+    if (normalizedLocal.length === 0 && !skipAiGeneration) {
       console.log(`[getQuestionsForQuiz] No questions found for quiz ${quizId}. Triggering Gemini AI auto-generation...`);
       try {
         const allQuizzes = getStorage('quizzes', INITIAL_QUIZZES);
@@ -471,28 +472,40 @@ export const api = {
 
   deleteQuestion: async (questionId, quizId) => {
     let questions = getStorage('questions', INITIAL_QUESTIONS);
-    questions = questions.filter(q => q.id !== questionId);
+    const beforeCount = questions.length;
+    questions = questions.filter(q => String(q.id) !== String(questionId) && String(q._id) !== String(questionId));
+    const afterCount = questions.length;
     setStorage('questions', questions);
 
+    if (beforeCount === afterCount) {
+      console.warn('[deleteQuestion] Question not found in localStorage by ID:', questionId, ' — attempting backend DELETE only.');
+    }
+
+    let serverDeleted = false;
     try {
-      await fetch(`/api/questions/${questionId}`, {
+      const response = await fetch(`/api/questions/${encodeURIComponent(questionId)}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('examify_hub_token')}`
         }
       });
+      serverDeleted = response.ok;
+      if (!response.ok) {
+        const txt = await response.text();
+        console.warn('[deleteQuestion] Backend returned non-OK:', response.status, txt);
+      }
     } catch (e) {
       console.warn('Backend deleteQuestion sync warning:', e.message);
     }
 
     const quizzes = getStorage('quizzes', INITIAL_QUIZZES);
-    const quizIdx = quizzes.findIndex(q => q.id === quizId);
+    const quizIdx = quizzes.findIndex(q => String(q.id) === String(quizId));
     if (quizIdx !== -1) {
-      const quizQuestions = questions.filter(q => q.quizId === quizId);
+      const quizQuestions = questions.filter(q => String(q.quizId) === String(quizId));
       quizzes[quizIdx].questionsCount = quizQuestions.length;
       setStorage('quizzes', quizzes);
     }
-    return true;
+    return { ok: true, serverDeleted, removed: (beforeCount - afterCount) };
   },
 
   // Attempt & Scoring

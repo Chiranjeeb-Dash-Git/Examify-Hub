@@ -176,7 +176,7 @@ export const ActiveQuizPage = () => {
         {/* Assessment Header Toolbar */}
         <header className="metal clip-hud-sm p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <span className="font-orbitron text-neon-cyan uppercase tracking-widest text-[9px]">ACTIVE DIRECTIVE TELEMETRY</span>
+            <span className="font-orbitron text-neon-orange uppercase tracking-widest text-[9px]">ACTIVE DIRECTIVE TELEMETRY</span>
             <h2 className="font-orbitron text-xl font-bold text-white leading-tight mt-1">{activeQuiz.title}</h2>
           </div>
 
@@ -185,7 +185,7 @@ export const ActiveQuizPage = () => {
             className={`flex items-center gap-2 px-4 py-2 clip-hud-sm font-orbitron text-sm font-bold border transition-colors ${
               isTimeCritical
                 ? 'bg-red-500/10 text-red-400 border-red-500/40 animate-pulse'
-                : 'bg-black/40 text-cyan-300 border-cyan-400/30 glow-cyan'
+                : 'bg-black/40 text-orange-300 border-orange-400/30 glow-orange'
             }`}
           >
             <Clock className="h-4 w-4" />

@@ -33,17 +33,17 @@ export const AttemptHistoryPage = () => {
       {/* ── HERO HEADER ── */}
       <header className="relative mb-12">
         <div className="absolute -top-10 right-0 hidden xl:block float-y">
-          <div className="w-32 h-32 diamond bg-gradient-to-br from-cyan-500/15 to-violet-600/15 border border-cyan-400/20 glow-cyan flex items-center justify-center">
-            <History className="w-10 h-10 text-cyan-300/80" style={{ transform: 'rotate(-45deg)' }} />
+          <div className="w-32 h-32 diamond bg-gradient-to-br from-orange-500/15 to-red-600/15 border border-orange-400/20 glow-orange flex items-center justify-center">
+            <History className="w-10 h-10 text-orange-300/80" style={{ transform: 'rotate(-45deg)' }} />
           </div>
         </div>
         <div className="flex items-center gap-4 mb-4">
-          <div style={{ height: 1, width: 56, background: 'linear-gradient(90deg, #22d3ee, transparent)' }} />
-          <span className="font-orbitron text-neon-cyan uppercase" style={{ fontSize: 11, letterSpacing: '0.5em' }}>Telemetry Audit Logs</span>
+          <div style={{ height: 1, width: 56, background: 'linear-gradient(90deg, #fb923c, transparent)' }} />
+          <span className="font-orbitron text-neon-orange uppercase" style={{ fontSize: 11, letterSpacing: '0.5em' }}>Telemetry Audit Logs</span>
           <span className="pulse-dot" />
         </div>
         <h1 className="font-orbitron font-black leading-none mb-4" style={{ fontSize: 'clamp(2.5rem, 6vw, 4.5rem)' }}>
-          <span className="chrome-text">ATTEMPT</span> <span className="grad-neon" style={{ filter: 'drop-shadow(0 0 24px rgba(168,85,247,.5))' }}>HISTORY LOG</span>
+          <span className="chrome-text">ATTEMPT</span> <span className="grad-orange" style={{ filter: 'drop-shadow(0 0 24px rgba(249,115,22,.5))' }}>HISTORY LOG</span>
         </h1>
         <p className="text-zinc-400 text-lg tracking-wide max-w-2xl">
           Review your previous assessment performances and candidate telemetry logs from the arena.
@@ -57,7 +57,7 @@ export const AttemptHistoryPage = () => {
         <div className="shine" />
         <div className="p-6 border-b border-white/5">
           <h3 className="font-orbitron font-bold flex items-center gap-2.5" style={{ fontSize: 13, letterSpacing: '0.15em' }}>
-            <History className="w-4 h-4 text-neon-cyan" />
+            <History className="w-4 h-4 text-neon-orange" />
             <span style={{ color: '#fff' }}>ATTEMPT METRICS REGISTRY</span>
           </h3>
         </div>
@@ -105,7 +105,7 @@ export const AttemptHistoryPage = () => {
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="diamond flex items-center justify-center font-orbitron font-black text-black"
-                          style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#22d3ee,#3b82f6)', fontSize: 10 }}>
+                          style={{ width: 36, height: 36, background: 'linear-gradient(135deg,#fb923c,#ea580c)', fontSize: 10 }}>
                           <span style={{ transform: 'rotate(-45deg)' }}>QU</span>
                         </div>
                         <span style={{ fontWeight: 700, letterSpacing: '0.04em' }}>{att.quizTitle}</span>

@@ -63,6 +63,7 @@ exports.saveQuestion = async (req, res) => {
 exports.deleteQuestion = async (req, res) => {
   try {
     const { id } = req.params;
+    await db.asyncRun('DELETE FROM options WHERE question_id = ?', [id]);
     await db.asyncRun('DELETE FROM questions WHERE id = ?', [id]);
     res.json({ message: 'Question deleted successfully' });
   } catch (err) {

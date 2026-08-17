@@ -25,9 +25,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Internal Server Error', error: err.message });
 });
 
-app.listen(PORT, () => {
-  console.log(`====================================================`);
-  console.log(` Examify Hub REST API Server running on port ${PORT}`);
-  console.log(` Health Check: http://localhost:${PORT}/health`);
-  console.log(`====================================================`);
-});
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`====================================================`);
+    console.log(` Examify Hub REST API Server running on port ${PORT}`);
+    console.log(` Health Check: http://localhost:${PORT}/health`);
+    console.log(`====================================================`);
+  });
+}
+
+module.exports = app;

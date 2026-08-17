@@ -1,85 +1,122 @@
-# Examify-Hub | Aetheris Online Assessment Platform
+# <p align="center"><img src="https://readme-typing-svg.herokuapp.com?font=Orbitron&weight=900&size=34&duration=3000&pause=1000&color=22D3EE&center=true&vCenter=true&width=800&height=70&lines=EXAMIFY-HUB;AETHERIS+ASSESSMENT+OS;COMMAND+CENTER+V2.6;GEMINI+AI+POWERED" alt="Typing SVG" /></p>
 
-A web-based online quiz and assessment platform ("Aetheris") featuring student and admin portals, automated scoring, countdown timers, performance telemetry, candidate leaderboards, and administrative management.
-
-![Examify-Hub | Online Assessment Platform](https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80)
-
----
-
-## 🌟 Key Features
-
-### 🎓 Student / Candidate Portal
-- **Dashboard Briefing**: Circular accuracy gauge, quizzes passed counter, weekly activity heatmap chart, and recommended directives.
-- **Quiz Discovery**: Search by title/category, filter by difficulty (Beginner, Intermediate, Advanced), category pills, and popularity sorting.
-- **Active Assessment Engine**: Distraction-free quiz UI with live countdown timer, question palette navigation sidebar, MCQ option selector, and auto-submission on time expiry.
-- **Detailed Result & Answer Review**: Score percentage, Pass/Fail status badge, correct/incorrect/unanswered tally, time taken, and full question explanations.
-- **Attempt History Log**: Complete historical record of all previous attempts.
-- **Candidate Leaderboard**: Top 3 Podium (Gold, Silver, Bronze badges) and full accuracy rankings.
-
-### 🛡️ Admin Command Center
-- **Platform Analytics**: Total student registrations, quiz attempts, avg completion rate, system anomalies, engagement trend charts, and active sessions.
-- **Candidate Management**: Search candidates, view profile & attempt history modal, activate/deactivate account toggle, and delete user.
-- **Quiz & Question Builder**: Create/edit quizzes, publish/unpublish toggle, MCQ option builder, correct answer selector, marks, and explanation editor.
-- **Category Management**: Create, edit, and delete assessment domains.
+<p align="center">
+  <img src="https://img.shields.io/badge/Aesthetics-Liquid%20Obsidian-A855F7?style=for-the-badge&logo=visual-studio-code&logoColor=white" alt="Theme Badge" />
+  <img src="https://img.shields.io/badge/AI%20Telemetry-Gemini%20Flash-F97316?style=for-the-badge&logo=google-gemini&logoColor=white" alt="AI Badge" />
+  <img src="https://img.shields.io/badge/Vite-v8.2-22D3EE?style=for-the-badge&logo=vite&logoColor=white" alt="Vite Badge" />
+  <img src="https://img.shields.io/badge/Backend-Express%20%26%20SQLite-emerald?style=for-the-badge&logo=sqlite&logoColor=white" alt="Backend Badge" />
+</p>
 
 ---
 
-## 🏗️ Architecture & Technology Stack
+<p align="center">
+  A state-of-the-art, high-performance web-based online quiz and assessment engine featuring a premium 3D Liquid Obsidian HUD UI, AI-powered question generator, live cursor telemetry, interactive typewriter profile, and candidate dashboards.
+</p>
+
+<p align="center">
+  <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" width="100%" alt="Examify-Hub | Online Assessment Platform" />
+</p>
+
+---
+
+## 🚀 Key Features
+
+### 🤖 AI Co-Pilot & Telemetry
+*   **Cursor-Tracking Robot:** A real-time SVG AI companion whose eyes dynamically track the administrator's mouse cursor across the screen.
+*   **Gemini AI Generator:** Instant, automated MCQ creation based on topics and difficulty settings. Generates balanced distractors, correct answers, and rich explanations.
+*   **Telemetry Hub:** Real-time logging, attempts, completion scores, and student participation monitoring.
+
+### 🎓 Candidate Command Center
+*   **XP Progress Engine:** Gamified student progression bar with auto-leveling directives.
+*   **3D Liquid Glass Cards:** High-fidelity interactive panels styling quiz lists, metrics, and details.
+*   **Active Assessment Directive:** Embedded timers with visual warning states, distraction-free screen focus, and automated lock-in submission.
+*   **Candidate Standings:** Podiums featuring Gold, Silver, and Bronze rankings, paired with detailed review reports.
+
+### 🛡️ Admin OS Panel
+*   **typewriter-bio.txt:** Animated typewriter element detailing core profile data dynamically.
+*   **Liquid Glass Sidebar Filters:** Instantly search, filter, and modify live questions, categories, and student accounts.
+*   **Full CRUD Suite:** Management interface for categories, quizzes, and MCQ option builders.
+
+---
+
+## 🎨 System Demonstration (Interactive)
+
+<details>
+<summary><b>👁️ Click to expand System Telemetry details</b></summary>
+
+### Animated Cursor-Tracking SVG Robot
+```xml
+<!-- Embedded SVG containing eye-tracking logic & neon glows -->
+<svg ref={svgRef} viewBox="0 0 120 140" width={200} height={200}>
+  <ellipse cx={50 + eyeOffset.x} cy={40 + eyeOffset.y} rx="5" ry={eyeRy} fill="#22d3ee" />
+  <ellipse cx={70 + eyeOffset.x} cy={40 + eyeOffset.y} rx="5" ry={eyeRy} fill="#a855f7" />
+</svg>
+```
+
+### Typewriter Animation Loop
+```javascript
+useEffect(() => {
+  let i = 0;
+  const id = setInterval(() => {
+    i++;
+    setTyped(fullText.slice(0, i));
+    if (i >= fullText.length) clearInterval(id);
+  }, 35);
+  return () => clearInterval(id);
+}, []);
+```
+</details>
+
+---
+
+## 🏗️ Architecture Blueprint
 
 ```
-Online Assessment Platform/
+Examify-Hub/
 ├── frontend/                     # React + Vite + Tailwind CSS SPA
 │   ├── src/
-│   │   ├── components/           # Navbar, Footer, AdminSidebar, QuizCard
+│   │   ├── components/           # CursorTrackingRobot, AdminSidebar, HudPlayerLayout
 │   │   ├── context/              # AuthContext, QuizContext
-│   │   ├── pages/                # Landing, Auth, Student Dashboard, Explore Quizzes, Quiz Attempt, Result, Leaderboard
-│   │   ├── pages/admin/          # Admin Dashboard, User Management, Quiz Builder, Question Bank, Categories
-│   │   └── services/             # API client & mock data persistence
+│   │   ├── pages/                # Landing, Auth, Student Dashboard, ActiveQuiz
+│   │   ├── pages/admin/          # AdminDashboardPage, AdminUsers, AdminQuizzes
+│   │   └── services/             # LocalStorage Fallbacks & Axios Sync Services
 └── backend/                      # Node.js + Express REST API
-    ├── config/                   # SQLite database schema
-    ├── controllers/              # Auth, Quiz, Question, Attempt, Category, Admin controllers
-    ├── middleware/               # JWT verification & Admin authorization
-    └── routes/                   # API endpoints (/api/auth, /api/quizzes, /api/attempts, etc.)
+    ├── config/                   # SQLite database configurations
+    ├── controllers/              # Auth, Quiz, Question, Attempt controllers
+    └── routes/                   # API end-points (/api/auth, /api/quizzes)
 ```
-
-- **Frontend**: React.js, Vite, Tailwind CSS v4, Lucide React, Recharts, React Router DOM, Canvas Confetti.
-- **Backend**: Node.js, Express.js, SQLite3, JSON Web Token (JWT), bcryptjs, CORS.
 
 ---
 
-## 🏃 Getting Started
+## 🏃 Launch Directives
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm
-
-### 1. Clone Repository
+### 1. Clone & Initialize
 ```bash
 git clone https://github.com/Chiranjeeb-Dash-Git/Examify-Hub.git
 cd Examify-Hub
 ```
 
-### 2. Setup & Run Backend API
+### 2. Ignition Backend
 ```bash
 cd backend
 npm install
-npm start
+npm run dev
 ```
-*Backend REST API running at `http://localhost:5000/api`*
+*Backend Server listening at `http://localhost:5000/api`*
 
-### 3. Setup & Run Frontend Web Application
+### 3. Ignition Frontend
 ```bash
-cd frontend
+cd ../frontend
 npm install
 npm run dev
 ```
-*Frontend running at `http://localhost:5173/`*
+*Frontend Application listening at `http://localhost:5173/`*
 
 ---
 
-## 🔑 Demo Access Credentials
+## 🔑 Verification Credentials
 
-| Role | Email | Password |
+| Privilege Level | Email Identifier | Access Passcode |
 | :--- | :--- | :--- |
 | **Demo Student** | `student@aetheris.io` | `password123` |
 | **Demo Admin** | `admin@aetheris.io` | `adminpassword` |
@@ -87,4 +124,4 @@ npm run dev
 ---
 
 ## 📝 License
-This project is open source and available under the [MIT License](LICENSE).
+This project is open-source and released under the [MIT License](LICENSE).

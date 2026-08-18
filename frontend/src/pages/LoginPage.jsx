@@ -5,7 +5,7 @@ import { Shield, User, ArrowRight, AlertCircle, Lock, Sparkles, Terminal } from 
 import { Hero3DCanvas } from '../components/landing/Hero3DCanvas';
 import { Reveal } from '../components/landing/Reveal';
 
-const ADMIN_PORTAL_EMAIL = 'admin@aetheris.io';
+const ADMIN_PORTAL_EMAIL = 'admin@examify.io';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');

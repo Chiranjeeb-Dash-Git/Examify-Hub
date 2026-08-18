@@ -9,8 +9,8 @@ const connectionString =
   process.env.DATABASE_URL ||
   null;
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@aetheris.io';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'adminpassword';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@examify.io';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
 const ADMIN_NAME = process.env.ADMIN_NAME || 'Admin Commander';
 const DEMO_STUDENT_EMAIL = process.env.DEMO_STUDENT_EMAIL || 'student@aetheris.io';
 const DEMO_STUDENT_PASSWORD = process.env.DEMO_STUDENT_PASSWORD || 'password123';
@@ -229,7 +229,7 @@ async function initDatabase() {
   await db.asyncRun(
     `INSERT INTO users (id, name, email, password, role, status, login_count, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, 0, CURRENT_TIMESTAMP)
-     ON CONFLICT (email) DO UPDATE SET
+     ON CONFLICT (id) DO UPDATE SET
        name = EXCLUDED.name,
        password = EXCLUDED.password,
        role = EXCLUDED.role,
@@ -242,7 +242,7 @@ async function initDatabase() {
   await db.asyncRun(
     `INSERT INTO users (id, name, email, password, role, status, login_count, updated_at)
      VALUES ($1, $2, $3, $4, $5, $6, 0, CURRENT_TIMESTAMP)
-     ON CONFLICT (email) DO UPDATE SET
+     ON CONFLICT (id) DO UPDATE SET
        name = EXCLUDED.name,
        password = EXCLUDED.password,
        role = EXCLUDED.role,

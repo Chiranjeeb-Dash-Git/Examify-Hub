@@ -25,7 +25,7 @@ exports.getQuizById = async (req, res) => {
         (SELECT COUNT(id) FROM questions WHERE quiz_id = q.id) as questionsCount
       FROM quizzes q
       LEFT JOIN categories c ON q.category_id = c.id
-      WHERE q.id = ?
+      WHERE q.id = $1
     `, [id]);
 
     if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
@@ -43,7 +43,7 @@ exports.createQuiz = async (req, res) => {
     const id = `quiz-${Date.now()}`;
     await db.asyncRun(`
       INSERT INTO quizzes (id, title, description, category_id, difficulty, duration, passing_score, max_attempts, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
     `, [
       id,
       title,
@@ -56,7 +56,7 @@ exports.createQuiz = async (req, res) => {
       status || 'Published'
     ]);
 
-    const created = await db.asyncGet('SELECT * FROM quizzes WHERE id = ?', [id]);
+    const created = await db.asyncGet('SELECT * FROM quizzes WHERE id = $1', [id]);
     res.status(201).json(created);
   } catch (err) {
     res.status(500).json({ message: 'Error creating quiz', error: err.message });
@@ -70,11 +70,11 @@ exports.updateQuiz = async (req, res) => {
 
     await db.asyncRun(`
       UPDATE quizzes
-      SET title = ?, description = ?, category_id = ?, difficulty = ?, duration = ?, passing_score = ?, max_attempts = ?, status = ?, updated_at = CURRENT_TIMESTAMP
-      WHERE id = ?
+      SET title = $1, description = $2, category_id = $3, difficulty = $4, duration = $5, passing_score = $6, max_attempts = $7, status = $8, updated_at = CURRENT_TIMESTAMP
+      WHERE id = $9
     `, [title, description, categoryId, difficulty, duration, passingScore, maxAttempts, status, id]);
 
-    const updated = await db.asyncGet('SELECT * FROM quizzes WHERE id = ?', [id]);
+    const updated = await db.asyncGet('SELECT * FROM quizzes WHERE id = $1', [id]);
     res.json(updated);
   } catch (err) {
     res.status(500).json({ message: 'Error updating quiz', error: err.message });
@@ -84,7 +84,7 @@ exports.updateQuiz = async (req, res) => {
 exports.deleteQuiz = async (req, res) => {
   try {
     const { id } = req.params;
-    await db.asyncRun('DELETE FROM quizzes WHERE id = ?', [id]);
+    await db.asyncRun('DELETE FROM quizzes WHERE id = $1', [id]);
     res.json({ message: 'Quiz deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting quiz', error: err.message });

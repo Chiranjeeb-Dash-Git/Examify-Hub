@@ -1,67 +1,109 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../.env') });
 
-const dbPath = process.env.DATABASE_PATH || path.resolve(__dirname, '../aetheris.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Failed to connect to SQLite database:', err.message);
-  } else {
-    console.log('Connected to Examify Hub SQLite database.');
+const connectionString =
+  process.env.SUPABASE_POOLER_URL ||
+  process.env.SUPABASE_DATABASE_URL ||
+  process.env.DATABASE_URL ||
+  null;
+
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@aetheris.io';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'adminpassword';
+const ADMIN_NAME = process.env.ADMIN_NAME || 'Admin Commander';
+const DEMO_STUDENT_EMAIL = process.env.DEMO_STUDENT_EMAIL || 'student@aetheris.io';
+const DEMO_STUDENT_PASSWORD = process.env.DEMO_STUDENT_PASSWORD || 'password123';
+const DEMO_STUDENT_NAME = process.env.DEMO_STUDENT_NAME || 'Rahul Sharma';
+
+const hasDatabaseUrl = !!connectionString;
+const shouldBootstrap = process.env.RUN_DB_BOOTSTRAP === 'true';
+const pool = hasDatabaseUrl
+  ? new Pool({
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+      max: 5,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 10_000,
+    })
+  : null;
+
+if (pool) {
+  pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
+    process.exit(-1);
+  });
+  console.log('Connected to Supabase PostgreSQL database.');
+} else {
+  console.warn('No Supabase/Postgres connection string is set. Backend API will run in fallback mode until a database connection is configured.');
+}
+
+// Utility helpers for Async SQL queries mapped to pg syntax
+const db = {};
+
+// For queries that don't return rows (INSERT/UPDATE/DELETE without RETURNING)
+db.asyncRun = async function (sql, params = []) {
+  try {
+    if (!pool) {
+      throw new Error('No database connection string is configured.');
+    }
+    const res = await pool.query(sql, params);
+    return res;
+  } catch (err) {
+    throw err;
   }
-});
-
-// Utility helpers for Async SQL queries
-db.asyncRun = function (sql, params = []) {
-  return new Promise((resolve, reject) => {
-    this.run(sql, params, function (err) {
-      if (err) reject(err);
-      else resolve(this);
-    });
-  });
 };
 
-db.asyncAll = function (sql, params = []) {
-  return new Promise((resolve, reject) => {
-    this.all(sql, params, (err, rows) => {
-      if (err) reject(err);
-      else resolve(rows);
-    });
-  });
+// For queries returning multiple rows
+db.asyncAll = async function (sql, params = []) {
+  try {
+    if (!pool) {
+      throw new Error('No database connection string is configured.');
+    }
+    const res = await pool.query(sql, params);
+    return res.rows;
+  } catch (err) {
+    throw err;
+  }
 };
 
-db.asyncGet = function (sql, params = []) {
-  return new Promise((resolve, reject) => {
-    this.get(sql, params, (err, row) => {
-      if (err) reject(err);
-      else resolve(row);
-    });
-  });
+// For queries returning a single row
+db.asyncGet = async function (sql, params = []) {
+  try {
+    if (!pool) {
+      throw new Error('No database connection string is configured.');
+    }
+    const res = await pool.query(sql, params);
+    return res.rows[0];
+  } catch (err) {
+    throw err;
+  }
 };
 
 // Helper function to seed quiz if not exists
 async function seedQuiz(id, title, description, categoryId, difficulty, duration, passingScore, maxAttempts, status) {
-  const existing = await db.asyncGet('SELECT id FROM quizzes WHERE id = ?', [id]);
+  const existing = await db.asyncGet('SELECT id FROM quizzes WHERE id = $1', [id]);
   if (!existing) {
     await db.asyncRun(`
       INSERT INTO quizzes (id, title, description, category_id, difficulty, duration, passing_score, max_attempts, status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      ON CONFLICT (id) DO NOTHING
     `, [id, title, description, categoryId, difficulty, duration, passingScore, maxAttempts, status]);
   }
 }
 
 // Helper function to seed question with options
 async function seedQuestion(qId, quizId, text, marks, explanation, diff, options) {
-  const existing = await db.asyncGet('SELECT id FROM questions WHERE id = ?', [qId]);
+  const existing = await db.asyncGet('SELECT id FROM questions WHERE id = $1', [qId]);
   if (!existing) {
     await db.asyncRun(
-      `INSERT INTO questions (id, quiz_id, question_text, marks, explanation, difficulty) VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO questions (id, quiz_id, question_text, marks, explanation, difficulty) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (id) DO NOTHING`,
       [qId, quizId, text, marks, explanation, diff]
     );
     for (let opt of options) {
       await db.asyncRun(
-        `INSERT INTO options (id, question_id, option_text, is_correct) VALUES (?, ?, ?, ?)`,
-        [opt.id, qId, opt.text, opt.isCorrect ? 1 : 0]
+        `INSERT INTO options (id, question_id, option_text, is_correct) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO NOTHING`,
+        [opt.id, qId, opt.text, opt.isCorrect]
       );
     }
   }
@@ -77,16 +119,23 @@ async function initDatabase() {
       password TEXT NOT NULL,
       role TEXT NOT NULL DEFAULT 'STUDENT',
       status TEXT NOT NULL DEFAULT 'ACTIVE',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      login_count INTEGER NOT NULL DEFAULT 0,
+      last_login_at TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  await db.asyncRun(`ALTER TABLE users ADD COLUMN IF NOT EXISTS login_count INTEGER NOT NULL DEFAULT 0;`);
+  await db.asyncRun(`ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;`);
+  await db.asyncRun(`ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`);
 
   await db.asyncRun(`
     CREATE TABLE IF NOT EXISTS categories (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 
@@ -101,8 +150,8 @@ async function initDatabase() {
       passing_score INTEGER DEFAULT 60,
       max_attempts INTEGER DEFAULT 3,
       status TEXT DEFAULT 'Published',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
     );
   `);
@@ -115,7 +164,7 @@ async function initDatabase() {
       marks INTEGER DEFAULT 2,
       explanation TEXT,
       difficulty TEXT DEFAULT 'Easy',
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
     );
   `);
@@ -125,7 +174,7 @@ async function initDatabase() {
       id TEXT PRIMARY KEY,
       question_id TEXT NOT NULL,
       option_text TEXT NOT NULL,
-      is_correct INTEGER DEFAULT 0,
+      is_correct BOOLEAN DEFAULT false,
       FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
     );
   `);
@@ -142,12 +191,26 @@ async function initDatabase() {
       unanswered INTEGER NOT NULL,
       time_taken TEXT NOT NULL,
       status TEXT NOT NULL,
-      started_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (quiz_id) REFERENCES quizzes(id),
       FOREIGN KEY (user_id) REFERENCES users(id)
     );
   `);
+
+  await db.asyncRun(`
+    CREATE TABLE IF NOT EXISTS user_activity (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      action TEXT NOT NULL,
+      details JSONB,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+  `);
+
+  await db.asyncRun(`CREATE INDEX IF NOT EXISTS idx_user_activity_user_created ON user_activity(user_id, created_at DESC);`);
+  await db.asyncRun(`CREATE INDEX IF NOT EXISTS idx_user_activity_created_at ON user_activity(created_at DESC);`);
 
   await db.asyncRun(`
     CREATE TABLE IF NOT EXISTS answers (
@@ -155,48 +218,59 @@ async function initDatabase() {
       attempt_id TEXT NOT NULL,
       question_id TEXT NOT NULL,
       selected_option_id TEXT,
-      is_correct INTEGER DEFAULT 0,
+      is_correct BOOLEAN DEFAULT false,
       FOREIGN KEY (attempt_id) REFERENCES attempts(id) ON DELETE CASCADE,
       FOREIGN KEY (question_id) REFERENCES questions(id)
     );
   `);
 
   // Seed Initial Admin & Users
-  const adminExists = await db.asyncGet(`SELECT id FROM users WHERE email = 'admin@aetheris.io'`);
-  if (!adminExists) {
-    const hashedAdminPass = await bcrypt.hash('adminpassword', 10);
-    await db.asyncRun(
-      `INSERT INTO users (id, name, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
-      ['usr-admin', 'Admin Commander', 'admin@aetheris.io', hashedAdminPass, 'ADMIN', 'ACTIVE']
-    );
+  const hashedAdminPass = await bcrypt.hash(ADMIN_PASSWORD, 10);
+  await db.asyncRun(
+    `INSERT INTO users (id, name, email, password, role, status, login_count, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, 0, CURRENT_TIMESTAMP)
+     ON CONFLICT (email) DO UPDATE SET
+       name = EXCLUDED.name,
+       password = EXCLUDED.password,
+       role = EXCLUDED.role,
+       status = EXCLUDED.status,
+       updated_at = CURRENT_TIMESTAMP`,
+    ['usr-admin', ADMIN_NAME, ADMIN_EMAIL, hashedAdminPass, 'ADMIN', 'ACTIVE']
+  );
 
-    const hashedStudentPass = await bcrypt.hash('password123', 10);
-    await db.asyncRun(
-      `INSERT INTO users (id, name, email, password, role, status) VALUES (?, ?, ?, ?, ?, ?)`,
-      ['usr-1', 'Rahul Sharma', 'student@aetheris.io', hashedStudentPass, 'STUDENT', 'ACTIVE']
-    );
-  }
+  const hashedStudentPass = await bcrypt.hash(DEMO_STUDENT_PASSWORD, 10);
+  await db.asyncRun(
+    `INSERT INTO users (id, name, email, password, role, status, login_count, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, 0, CURRENT_TIMESTAMP)
+     ON CONFLICT (email) DO UPDATE SET
+       name = EXCLUDED.name,
+       password = EXCLUDED.password,
+       role = EXCLUDED.role,
+       status = EXCLUDED.status,
+       updated_at = CURRENT_TIMESTAMP`,
+    ['usr-1', DEMO_STUDENT_NAME, DEMO_STUDENT_EMAIL, hashedStudentPass, 'STUDENT', 'ACTIVE']
+  );
 
   // Seed Categories
-  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+  await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`, [
     'cat-1', 'JavaScript', 'Core ES6+, closures, async/await, and browser runtime engines.'
   ]);
-  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+  await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`, [
     'cat-2', 'React', 'JSX, hooks, component lifecycle, virtual DOM, and state management.'
   ]);
-  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+  await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`, [
     'cat-3', 'Cyber Security', 'Cryptography, network defense, web security vulnerabilities, and protocols.'
   ]);
-  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+  await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`, [
     'cat-4', 'Python', 'Data structures, OOP, decorators, generators, and standard libraries.'
   ]);
-  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+  await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`, [
     'cat-5', 'Computer Networks', 'OSI model, TCP/IP, DNS, routing algorithms, and socket programming.'
   ]);
-  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+  await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`, [
     'cat-6', 'Database Systems', 'SQL query optimization, indexing, ACID transactions, and NoSQL.'
   ]);
-  await db.asyncRun(`INSERT OR IGNORE INTO categories (id, name, description) VALUES (?, ?, ?)`, [
+  await db.asyncRun(`INSERT INTO categories (id, name, description) VALUES ($1, $2, $3) ON CONFLICT (id) DO NOTHING`, [
     'cat-7', 'Next.js', 'App Router, React Server Components, SSG, SSR, ISR, and API route handlers.'
   ]);
 
@@ -312,6 +386,10 @@ async function initDatabase() {
   ]);
 }
 
-initDatabase().catch(console.error);
+db.initDatabase = initDatabase;
+
+if (pool && shouldBootstrap) {
+  initDatabase().catch(console.error);
+}
 
 module.exports = db;

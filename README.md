@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/Aesthetics-Liquid%20Obsidian-A855F7?style=for-the-badge&logo=visual-studio-code&logoColor=white" alt="Theme Badge" />
   <img src="https://img.shields.io/badge/AI%20Telemetry-Gemini%20Flash-F97316?style=for-the-badge&logo=google-gemini&logoColor=white" alt="AI Badge" />
   <img src="https://img.shields.io/badge/Vite-v8.2-22D3EE?style=for-the-badge&logo=vite&logoColor=white" alt="Vite Badge" />
-  <img src="https://img.shields.io/badge/Backend-Express%20%26%20SQLite-emerald?style=for-the-badge&logo=sqlite&logoColor=white" alt="Backend Badge" />
+  <img src="https://img.shields.io/badge/Backend-Express%20%26%20PostgreSQL-emerald?style=for-the-badge&logo=postgresql&logoColor=white" alt="Backend Badge" />
 </p>
 
 ---
@@ -81,7 +81,7 @@ Examify-Hub/
 │   │   ├── pages/admin/          # AdminDashboardPage, AdminUsers, AdminQuizzes
 │   │   └── services/             # LocalStorage Fallbacks & Axios Sync Services
 └── backend/                      # Node.js + Express REST API
-    ├── config/                   # SQLite database configurations
+    ├── config/                   # PostgreSQL database configurations
     ├── controllers/              # Auth, Quiz, Question, Attempt controllers
     └── routes/                   # API end-points (/api/auth, /api/quizzes)
 ```
@@ -94,6 +94,15 @@ Examify-Hub/
 ```bash
 git clone https://github.com/Chiranjeeb-Dash-Git/Examify-Hub.git
 cd Examify-Hub
+```
+
+### 1b. Environment Setup
+Create a `.env` file at the project root using `.env.example` as a guide:
+```bash
+DATABASE_URL=postgresql://postgres:YOUR_SUPABASE_PASSWORD@db.qabpliyfxqackyxytznv.supabase.co:5432/postgres
+SUPABASE_POOLER_URL=postgresql://postgres.qabpliyfxqackyxytznv:YOUR_SUPABASE_PASSWORD@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres
+JWT_SECRET=replace-with-a-long-random-secret
+PORT=5000
 ```
 
 ### 2. Ignition Backend
@@ -114,12 +123,11 @@ npm run dev
 
 ---
 
-## 🔑 Verification Credentials
+## Authentication and Admin Access
 
-| Privilege Level | Email Identifier | Access Passcode |
-| :--- | :--- | :--- |
-| **Demo Student** | `student@aetheris.io` | `password123` |
-| **Demo Admin** | `admin@aetheris.io` | `adminpassword` |
+Candidate registration creates a `STUDENT` account only and opens the student portal. The login screen also includes a separate **Admin Login** button, which selects the fixed administrator email and routes an authenticated administrator directly to the control portal.
+
+Set `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `ADMIN_NAME`, and `JWT_SECRET` as private deployment environment variables. Do not put administrator passwords in frontend variables or documentation.
 
 ---
 

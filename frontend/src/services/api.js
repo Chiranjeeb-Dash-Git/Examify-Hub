@@ -24,51 +24,105 @@ const setStorage = (key, value) => {
   localStorage.setItem(`examify_hub_${key}`, JSON.stringify(value));
 };
 
+const isJwtLike = (token) => typeof token === 'string' && token.split('.').length === 3;
+
+const getAuthToken = () => localStorage.getItem('examify_hub_token') || localStorage.getItem('aetheris_token') || '';
+
+const apiRequest = async (path, options = {}, includeAuth = false) => {
+  const headers = {
+    ...(options.headers || {})
+  };
+
+  if (includeAuth) {
+    const token = getAuthToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  const response = await fetch(path, {
+    ...options,
+    headers
+  });
+  return response;
+};
+
 export const api = {
   // Authentication
   login: async (email, password) => {
-    const users = getStorage('users', INITIAL_USERS);
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
-    if (!user) {
-      throw new Error('Invalid email or password');
+    let response;
+    try {
+      response = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+    } catch (networkErr) {
+      throw new Error('Authentication service is unavailable. Please try again shortly.');
     }
-    if (user.status === 'DEACTIVATED') {
-      throw new Error('Account is deactivated. Please contact platform administrator.');
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('examify_hub_currentUser', JSON.stringify(data.user));
+      localStorage.setItem('examify_hub_token', data.token);
+      return { user: data.user, token: data.token };
     }
-    const token = `token-${user.id}-${Date.now()}`;
-    localStorage.setItem('examify_hub_currentUser', JSON.stringify(user));
-    localStorage.setItem('examify_hub_token', token);
-    return { user, token };
+
+    if ([400, 401, 403].includes(response.status)) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.message || 'Invalid email or password');
+    }
+
+    throw new Error(`Backend login failed with status ${response.status}`);
   },
 
   register: async ({ name, email, password }) => {
-    const users = getStorage('users', INITIAL_USERS);
-    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
-      throw new Error('Email address is already registered');
+    try {
+      const response = await apiRequest('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('examify_hub_currentUser', JSON.stringify(data.user));
+        localStorage.setItem('examify_hub_token', data.token);
+        return { user: data.user, token: data.token };
+      }
+
+      if ([400, 401, 403].includes(response.status)) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || 'Unable to register account');
+      }
+
+      throw new Error(`Backend registration failed with status ${response.status}`);
+    } catch (networkErr) {
+      throw new Error('Registration service is unavailable. Please try again shortly.');
     }
-    const newUser = {
-      id: `usr-${Date.now()}`,
-      name,
-      email,
-      password,
-      role: 'STUDENT',
-      status: 'ACTIVE',
-      registrationDate: new Date().toISOString().split('T')[0],
-      quizzesAttempted: 0,
-      averageScore: 0,
-      highestScore: 0,
-      avatar: `https://images.unsplash.com/photo-${1534528741775 + Math.floor(Math.random()*1000)}?auto=format&fit=crop&w=250&q=80`
-    };
-    users.push(newUser);
-    setStorage('users', users);
-    const token = `token-${newUser.id}-${Date.now()}`;
-    localStorage.setItem('examify_hub_currentUser', JSON.stringify(newUser));
-    localStorage.setItem('examify_hub_token', token);
-    return { user: newUser, token };
   },
 
   getCurrentUser: async () => {
+    const token = localStorage.getItem('examify_hub_token') || localStorage.getItem('aetheris_token');
     const saved = localStorage.getItem('examify_hub_currentUser') || localStorage.getItem('aetheris_currentUser');
+    if (token && isJwtLike(token)) {
+      try {
+        const response = await apiRequest('/api/auth/me', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (response.ok) {
+          return await response.json();
+        }
+      } catch (err) {
+        console.warn('Auth session validation failed:', err.message);
+      }
+      localStorage.removeItem('examify_hub_currentUser');
+      localStorage.removeItem('examify_hub_token');
+      localStorage.removeItem('aetheris_currentUser');
+      localStorage.removeItem('aetheris_token');
+      return null;
+    }
+
     return saved ? JSON.parse(saved) : null;
   },
 
@@ -656,10 +710,40 @@ export const api = {
       setStorage('quizzes', quizzes);
     }
 
+    try {
+      const response = await apiRequest('/api/attempts/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          attemptId: newAttempt.id,
+          quizId,
+          userId,
+          userAnswers,
+          timeTaken
+        })
+      }, true);
+      if (!response.ok) {
+        const text = await response.text().catch(() => '');
+        console.warn('[submitQuizAttempt] Backend sync failed:', response.status, text);
+      }
+    } catch (e) {
+      console.warn('[submitQuizAttempt] Backend sync warning:', e.message);
+    }
+
     return newAttempt;
   },
 
   getAttemptsForUser: async (userId) => {
+    try {
+      const response = await apiRequest(`/api/attempts/user/${encodeURIComponent(userId)}`, {}, true);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('Backend getAttemptsForUser sync warning:', e.message);
+    }
     const attempts = getStorage('attempts', INITIAL_ATTEMPTS);
     return attempts.filter(a => a.userId === userId).sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
   },
@@ -672,16 +756,54 @@ export const api = {
   },
 
   getAllAttempts: async () => {
+    try {
+      const response = await apiRequest('/api/admin/attempts', {}, true);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('Backend getAllAttempts sync warning:', e.message);
+    }
     const attempts = getStorage('attempts', INITIAL_ATTEMPTS);
     return attempts.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
   },
 
   // Users Management (Admin)
   getUsers: async () => {
+    try {
+      const response = await apiRequest('/api/admin/users', {}, true);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('Backend getUsers sync warning:', e.message);
+    }
     return getStorage('users', INITIAL_USERS);
   },
 
+  getRecentUserActivity: async () => {
+    try {
+      const response = await apiRequest('/api/admin/activity', {}, true);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('Backend activity sync warning:', e.message);
+    }
+    return [];
+  },
+
   toggleUserStatus: async (userId) => {
+    try {
+      const response = await apiRequest(`/api/admin/users/${encodeURIComponent(userId)}/status`, {
+        method: 'PATCH'
+      }, true);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('Backend toggleUserStatus sync warning:', e.message);
+    }
     const users = getStorage('users', INITIAL_USERS);
     const idx = users.findIndex(u => u.id === userId);
     if (idx !== -1) {
@@ -693,6 +815,16 @@ export const api = {
   },
 
   deleteUser: async (userId) => {
+    try {
+      const response = await apiRequest(`/api/admin/users/${encodeURIComponent(userId)}`, {
+        method: 'DELETE'
+      }, true);
+      if (response.ok) {
+        return true;
+      }
+    } catch (e) {
+      console.warn('Backend deleteUser sync warning:', e.message);
+    }
     let users = getStorage('users', INITIAL_USERS);
     users = users.filter(u => u.id !== userId);
     setStorage('users', users);
@@ -701,6 +833,14 @@ export const api = {
 
   // Leaderboard
   getLeaderboard: async () => {
+    try {
+      const response = await apiRequest('/api/leaderboard');
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('Backend leaderboard sync warning:', e.message);
+    }
     const users = getStorage('users', INITIAL_USERS).filter(u => u.role === 'STUDENT');
     return users
       .sort((a, b) => b.averageScore - a.averageScore || b.highestScore - a.highestScore)
@@ -712,6 +852,15 @@ export const api = {
 
   // Admin Analytics
   getAdminAnalytics: async () => {
+    try {
+      const response = await apiRequest('/api/admin/analytics', {}, true);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (e) {
+      console.warn('Backend analytics sync warning:', e.message);
+    }
+
     const users = getStorage('users', INITIAL_USERS).filter(u => u.role === 'STUDENT');
     const quizzes = getStorage('quizzes', INITIAL_QUIZZES);
     const attempts = getStorage('attempts', INITIAL_ATTEMPTS);

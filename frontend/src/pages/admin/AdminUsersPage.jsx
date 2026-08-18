@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { HudAdminLayout } from '../../components/HudAdminLayout';
 import { api } from '../../services/api';
 import { motion } from 'motion/react';
-import { Search, UserCheck, UserX, Trash2, Eye, Award, Calendar, Target, X, Filter, Tag, Shield, Power, LayoutGrid } from 'lucide-react';
+import { Search, UserCheck, UserX, Trash2, Eye, Award, Calendar, Target, X, Filter, Tag, Shield, Power, LayoutGrid, Clock } from 'lucide-react';
 
 export const AdminUsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -13,12 +13,17 @@ export const AdminUsersPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [userHistory, setUserHistory] = useState([]);
+  const [recentActivity, setRecentActivity] = useState([]);
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await api.getUsers();
+      const [data, activity] = await Promise.all([
+        api.getUsers(),
+        api.getRecentUserActivity ? api.getRecentUserActivity() : Promise.resolve([])
+      ]);
       setUsers(data);
+      setRecentActivity(activity || []);
     } catch (e) {
       console.error(e);
     } finally {
@@ -75,6 +80,19 @@ export const AdminUsersPage = () => {
     else if (sortBy === 'attempts') list = [...list].sort((a, b) => (b.quizzesAttempted || 0) - (a.quizzesAttempted || 0));
     return list;
   }, [users, searchTerm, roleFilter, statusFilter, sortBy]);
+
+  const formatDate = (value) => {
+    if (!value) return 'Never';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Never';
+    return date.toLocaleString([], {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <HudAdminLayout>
@@ -242,6 +260,9 @@ export const AdminUsersPage = () => {
                             <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold">Role</th>
                             <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold">Attempts</th>
                             <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold">Avg Accuracy</th>
+                            <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold">Registered</th>
+                            <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold">Last Login</th>
+                            <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold">Logins</th>
                             <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold">Status</th>
                             <th className="py-3 px-3 md:px-4 font-orbitron text-[9px] tracking-[.3em] uppercase text-zinc-500 font-bold text-right">Actions</th>
                           </tr>
@@ -281,6 +302,19 @@ export const AdminUsersPage = () => {
                               </td>
                               <td className="py-3 px-3 md:px-4">
                                 <span className="font-orbitron font-black text-neon-cyan text-xs md:text-sm">{u.averageScore || 0}%</span>
+                              </td>
+                              <td className="py-3 px-3 md:px-4">
+                                <div className="font-orbitron text-[9px] md:text-[10px] text-zinc-300">
+                                  {formatDate(u.createdAt || u.created_at)}
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 md:px-4">
+                                <div className="font-orbitron text-[9px] md:text-[10px] text-zinc-300">
+                                  {formatDate(u.lastLoginAt || u.last_login_at)}
+                                </div>
+                              </td>
+                              <td className="py-3 px-3 md:px-4">
+                                <span className="font-orbitron font-black text-white text-xs md:text-sm">{u.loginCount ?? u.login_count ?? 0}</span>
                               </td>
                               <td className="py-3 px-3 md:px-4">
                                 <span className={`clip-hud-sm px-2.5 py-1.5 text-[9px] font-orbitron tracking-[.2em] uppercase border flex items-center gap-1.5 inline-flex ${
@@ -436,6 +470,44 @@ export const AdminUsersPage = () => {
                             </span>
                           </div>
                         </motion.div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3 pt-2 border-t border-white/10">
+                  <h4 className="font-orbitron text-[10px] tracking-[.3em] uppercase text-zinc-500 font-bold flex items-center gap-2">
+                    <Clock className="w-3.5 h-3.5 text-cyan-300" />
+                    Recent Portal Activity
+                  </h4>
+                  {recentActivity.length === 0 ? (
+                    <div className="py-6 text-center text-zinc-500 font-orbitron text-[10px] tracking-[.2em]">
+                      NO LOGIN OR REGISTRATION EVENTS YET
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                      {recentActivity.map((event) => (
+                        <div
+                          key={event.id}
+                          className="bg-black/30 border border-white/5 clip-hud-sm p-3.5 flex items-center justify-between gap-4"
+                        >
+                          <div className="min-w-0">
+                            <div className="font-bold text-white text-sm truncate">{event.userName}</div>
+                            <div className="text-[10px] text-zinc-500 font-orbitron tracking-wider truncate">
+                              {event.userEmail}
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className={`font-orbitron font-black text-[10px] tracking-[.25em] uppercase ${
+                              event.action === 'REGISTER' ? 'text-fuchsia-300' : 'text-emerald-300'
+                            }`}>
+                              {event.action}
+                            </div>
+                            <div className="text-[10px] text-zinc-500 font-orbitron tracking-wider">
+                              {formatDate(event.createdAt)}
+                            </div>
+                          </div>
+                        </div>
                       ))}
                     </div>
                   )}

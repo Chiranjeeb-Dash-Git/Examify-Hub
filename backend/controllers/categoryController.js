@@ -21,7 +21,7 @@ exports.createCategory = async (req, res) => {
 
     const id = `cat-${Date.now()}`;
     await db.asyncRun(
-      'INSERT INTO categories (id, name, description) VALUES (?, ?, ?)',
+      'INSERT INTO categories (id, name, description) VALUES ($1, $2, $3)',
       [id, name, description || '']
     );
 
@@ -37,7 +37,7 @@ exports.updateCategory = async (req, res) => {
     const { name, description } = req.body;
 
     await db.asyncRun(
-      'UPDATE categories SET name = ?, description = ? WHERE id = ?',
+      'UPDATE categories SET name = $1, description = $2 WHERE id = $3',
       [name, description, id]
     );
 
@@ -50,7 +50,7 @@ exports.updateCategory = async (req, res) => {
 exports.deleteCategory = async (req, res) => {
   try {
     const { id } = req.params;
-    await db.asyncRun('DELETE FROM categories WHERE id = ?', [id]);
+    await db.asyncRun('DELETE FROM categories WHERE id = $1', [id]);
     res.json({ message: 'Category deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting category', error: err.message });

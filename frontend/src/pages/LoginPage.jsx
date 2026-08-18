@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Shield, User, ArrowRight, AlertCircle, Lock, Sparkles, Terminal } from 'lucide-react';
 import { Hero3DCanvas } from '../components/landing/Hero3DCanvas';
 import { Reveal } from '../components/landing/Reveal';
 
+const ADMIN_PORTAL_EMAIL = 'admin@aetheris.io';
+
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const passwordInputRef = useRef(null);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -33,19 +36,11 @@ export const LoginPage = () => {
     }
   };
 
-  const handleDemoLogin = async (role) => {
+  const selectPortal = (role) => {
     setError('');
-    setLoading(true);
-    try {
-      const demoEmail = role === 'ADMIN' ? 'admin@aetheris.io' : 'student@aetheris.io';
-      const demoPass = role === 'ADMIN' ? 'adminpassword' : 'password123';
-      const loggedUser = await login(demoEmail, demoPass);
-      navigate(loggedUser.role === 'ADMIN' ? '/admin' : '/dashboard');
-    } catch (err) {
-      setError(err.message || 'Demo authentication failed');
-    } finally {
-      setLoading(false);
-    }
+    setEmail(role === 'ADMIN' ? ADMIN_PORTAL_EMAIL : '');
+    setPassword('');
+    passwordInputRef.current?.focus();
   };
 
   return (
@@ -118,30 +113,33 @@ export const LoginPage = () => {
                   </h2>
                 </div>
 
-                {/* Quick Demo Login Preset Buttons */}
+                {/* Portal selector keeps the fixed admin password out of browser code. */}
                 <div className="space-y-2">
                   <span className="font-mono text-[10px] text-white/40 uppercase tracking-wider block">
-                    QUICK DEMO ACCESSS
+                    FIXED PORTAL ACCESS
                   </span>
                   <div className="grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => handleDemoLogin('STUDENT')}
+                      onClick={() => selectPortal('STUDENT')}
                       className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-mono text-xs text-white border border-white/15 bg-white/5 hover:bg-white hover:text-black transition-all duration-300 group"
                     >
                       <User className="h-3.5 w-3.5" />
-                      <span>DEMO STUDENT</span>
+                      <span>CANDIDATE LOGIN</span>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => handleDemoLogin('ADMIN')}
+                      onClick={() => selectPortal('ADMIN')}
                       className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-mono text-xs text-white border border-white/15 bg-white/5 hover:bg-white hover:text-black transition-all duration-300 group"
                     >
                       <Shield className="h-3.5 w-3.5" />
-                      <span>DEMO ADMIN</span>
+                      <span>ADMIN LOGIN</span>
                     </button>
                   </div>
+                  <p className="font-mono text-[10px] text-white/30 leading-relaxed">
+                    Candidates can create their own accounts. Admin Login selects the fixed Supabase-backed administrator account; enter its credentials to open the control portal.
+                  </p>
                 </div>
 
                 {/* Error Banner */}
@@ -181,6 +179,7 @@ export const LoginPage = () => {
                       </a>
                     </div>
                     <input
+                      ref={passwordInputRef}
                       type="password"
                       required
                       value={password}

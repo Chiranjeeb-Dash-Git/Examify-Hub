@@ -34,13 +34,15 @@ router.post('/questions', verifyAdmin, questionController.saveQuestion);
 router.delete('/questions/:id', verifyAdmin, questionController.deleteQuestion);
 
 // Attempt Routes
-router.post('/attempts/submit', attemptController.submitAttempt);
-router.get('/attempts/:id', attemptController.getAttemptById);
-router.get('/attempts/user/:userId', attemptController.getUserAttempts);
+router.post('/attempts/submit', verifyToken, attemptController.submitAttempt);
+router.get('/attempts/:id', verifyToken, attemptController.getAttemptById);
+router.get('/attempts/user/:userId', verifyToken, attemptController.getUserAttempts);
+router.get('/admin/attempts', verifyAdmin, attemptController.getAllAttempts);
 
 // Admin & Telemetry Routes
 router.get('/admin/analytics', verifyAdmin, adminController.getAdminAnalytics);
 router.get('/admin/users', verifyAdmin, adminController.getUsers);
+router.get('/admin/activity', verifyAdmin, adminController.getRecentActivity);
 router.patch('/admin/users/:userId/status', verifyAdmin, adminController.toggleUserStatus);
 router.delete('/admin/users/:userId', verifyAdmin, adminController.deleteUser);
 

@@ -3,15 +3,15 @@ const geminiService = require('../services/geminiService');
 
 exports.getAdminAnalytics = async (req, res) => {
   try {
-    const totalStudents = await db.asyncGet(`SELECT COUNT(id) as count FROM users WHERE role = 'STUDENT'`);
-    const totalQuizzes = await db.asyncGet(`SELECT COUNT(id) as count FROM quizzes`);
-    const publishedQuizzes = await db.asyncGet(`SELECT COUNT(id) as count FROM quizzes WHERE status = 'Published'`);
-    const draftQuizzes = await db.asyncGet(`SELECT COUNT(id) as count FROM quizzes WHERE status = 'Draft'`);
-    const totalQuestions = await db.asyncGet(`SELECT COUNT(id) as count FROM questions`);
-    const totalAttempts = await db.asyncGet(`SELECT COUNT(id) as count FROM attempts`);
-    const avgScoreRow = await db.asyncGet(`SELECT AVG(percentage) as avg FROM attempts`);
-    const totalPassed = await db.asyncGet(`SELECT COUNT(id) as count FROM attempts WHERE status = 'PASSED'`);
-    const totalFailed = await db.asyncGet(`SELECT COUNT(id) as count FROM attempts WHERE status = 'FAILED'`);
+    const totalStudents = await db.asyncGet(`SELECT COUNT(id)::int as count FROM users WHERE role = 'STUDENT'`);
+    const totalQuizzes = await db.asyncGet(`SELECT COUNT(id)::int as count FROM quizzes`);
+    const publishedQuizzes = await db.asyncGet(`SELECT COUNT(id)::int as count FROM quizzes WHERE status = 'Published'`);
+    const draftQuizzes = await db.asyncGet(`SELECT COUNT(id)::int as count FROM quizzes WHERE status = 'Draft'`);
+    const totalQuestions = await db.asyncGet(`SELECT COUNT(id)::int as count FROM questions`);
+    const totalAttempts = await db.asyncGet(`SELECT COUNT(id)::int as count FROM attempts`);
+    const avgScoreRow = await db.asyncGet(`SELECT ROUND(COALESCE(AVG(percentage), 0))::int as avg FROM attempts`);
+    const totalPassed = await db.asyncGet(`SELECT COUNT(id)::int as count FROM attempts WHERE status = 'PASSED'`);
+    const totalFailed = await db.asyncGet(`SELECT COUNT(id)::int as count FROM attempts WHERE status = 'FAILED'`);
 
     res.json({
       totalStudents: totalStudents.count,
@@ -32,10 +32,33 @@ exports.getAdminAnalytics = async (req, res) => {
 exports.getUsers = async (req, res) => {
   try {
     const users = await db.asyncAll(`
-      SELECT u.id, u.name, u.email, u.role, u.status, u.created_at,
-        (SELECT COUNT(id) FROM attempts WHERE user_id = u.id) as quizzesAttempted,
-        COALESCE((SELECT AVG(percentage) FROM attempts WHERE user_id = u.id), 0) as averageScore,
-        COALESCE((SELECT MAX(percentage) FROM attempts WHERE user_id = u.id), 0) as highestScore
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.role,
+        u.status,
+        u.created_at AS "createdAt",
+        u.updated_at AS "updatedAt",
+        u.last_login_at AS "lastLoginAt",
+        COALESCE(u.login_count, 0)::int AS "loginCount",
+        COALESCE((SELECT COUNT(*) FROM attempts WHERE user_id = u.id), 0)::int AS "quizzesAttempted",
+        COALESCE((SELECT AVG(percentage) FROM attempts WHERE user_id = u.id), 0)::int AS "averageScore",
+        COALESCE((SELECT MAX(percentage) FROM attempts WHERE user_id = u.id), 0)::int AS "highestScore",
+        (
+          SELECT ua.action
+          FROM user_activity ua
+          WHERE ua.user_id = u.id
+          ORDER BY ua.created_at DESC
+          LIMIT 1
+        ) AS "lastActivityType",
+        (
+          SELECT ua.created_at
+          FROM user_activity ua
+          WHERE ua.user_id = u.id
+          ORDER BY ua.created_at DESC
+          LIMIT 1
+        ) AS "lastActivityAt"
       FROM users u
       ORDER BY u.created_at DESC
     `);
@@ -45,14 +68,37 @@ exports.getUsers = async (req, res) => {
   }
 };
 
+exports.getRecentActivity = async (req, res) => {
+  try {
+    const activity = await db.asyncAll(`
+      SELECT
+        ua.id,
+        ua.user_id AS "userId",
+        u.name AS "userName",
+        u.email AS "userEmail",
+        u.role AS "userRole",
+        ua.action,
+        ua.details,
+        ua.created_at AS "createdAt"
+      FROM user_activity ua
+      JOIN users u ON u.id = ua.user_id
+      ORDER BY ua.created_at DESC
+      LIMIT 30
+    `);
+    res.json(activity);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching recent activity', error: err.message });
+  }
+};
+
 exports.toggleUserStatus = async (req, res) => {
   try {
     const { userId } = req.params;
-    const user = await db.asyncGet('SELECT status FROM users WHERE id = ?', [userId]);
+    const user = await db.asyncGet('SELECT status FROM users WHERE id = $1', [userId]);
     if (!user) return res.status(404).json({ message: 'User not found' });
 
     const newStatus = user.status === 'ACTIVE' ? 'DEACTIVATED' : 'ACTIVE';
-    await db.asyncRun('UPDATE users SET status = ? WHERE id = ?', [newStatus, userId]);
+    await db.asyncRun('UPDATE users SET status = $1 WHERE id = $2', [newStatus, userId]);
 
     res.json({ message: `User status updated to ${newStatus}`, status: newStatus });
   } catch (err) {
@@ -63,7 +109,7 @@ exports.toggleUserStatus = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const { userId } = req.params;
-    await db.asyncRun('DELETE FROM users WHERE id = ?', [userId]);
+    await db.asyncRun('DELETE FROM users WHERE id = $1', [userId]);
     res.json({ message: 'User deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting user', error: err.message });
@@ -74,14 +120,14 @@ exports.getLeaderboard = async (req, res) => {
   try {
     const leaderboard = await db.asyncAll(`
       SELECT u.id, u.name, u.email,
-        COUNT(a.id) as quizzesAttempted,
-        COALESCE(AVG(a.percentage), 0) as averageScore,
-        COALESCE(MAX(a.percentage), 0) as highestScore
+        COUNT(a.id)::int AS "quizzesAttempted",
+        COALESCE(AVG(a.percentage), 0)::int AS "averageScore",
+        COALESCE(MAX(a.percentage), 0)::int AS "highestScore"
       FROM users u
       LEFT JOIN attempts a ON u.id = a.user_id
       WHERE u.role = 'STUDENT'
       GROUP BY u.id
-      ORDER BY averageScore DESC, highestScore DESC
+      ORDER BY "averageScore" DESC, "highestScore" DESC
     `);
 
     const ranked = leaderboard.map((item, index) => ({
@@ -151,4 +197,3 @@ exports.parsePdfQuestionPaper = async (req, res) => {
     res.status(500).json({ message: 'PDF parsing failed', error: err.message });
   }
 };
-

@@ -4,16 +4,16 @@ exports.getQuestionsForQuiz = async (req, res) => {
   try {
     const { quizId } = req.params;
     const questions = await db.asyncAll(
-      'SELECT * FROM questions WHERE quiz_id = ? ORDER BY created_at ASC',
+      'SELECT * FROM questions WHERE quiz_id = $1 ORDER BY created_at ASC',
       [quizId]
     );
 
     for (let q of questions) {
       const options = await db.asyncAll(
-        'SELECT id, option_text as text, is_correct as isCorrect FROM options WHERE question_id = ?',
+        'SELECT id, option_text as text, is_correct as "isCorrect" FROM options WHERE question_id = $1',
         [q.id]
       );
-      q.options = options.map(o => ({ ...o, isCorrect: !!o.isCorrect }));
+      q.options = options.map(o => ({ ...o, isCorrect: !!o.isCorrect || !!o.iscorrect }));
     }
 
     res.json(questions);
@@ -33,14 +33,14 @@ exports.saveQuestion = async (req, res) => {
     if (qId) {
       // Update existing
       await db.asyncRun(
-        'UPDATE questions SET question_text = ?, marks = ?, explanation = ?, difficulty = ? WHERE id = ?',
+        'UPDATE questions SET question_text = $1, marks = $2, explanation = $3, difficulty = $4 WHERE id = $5',
         [questionText, marks || 2, explanation || '', difficulty || 'Easy', qId]
       );
-      await db.asyncRun('DELETE FROM options WHERE question_id = ?', [qId]);
+      await db.asyncRun('DELETE FROM options WHERE question_id = $1', [qId]);
     } else {
       qId = `q-${Date.now()}`;
       await db.asyncRun(
-        'INSERT INTO questions (id, quiz_id, question_text, marks, explanation, difficulty) VALUES (?, ?, ?, ?, ?, ?)',
+        'INSERT INTO questions (id, quiz_id, question_text, marks, explanation, difficulty) VALUES ($1, $2, $3, $4, $5, $6)',
         [qId, quizId, questionText, marks || 2, explanation || '', difficulty || 'Easy']
       );
     }
@@ -49,8 +49,8 @@ exports.saveQuestion = async (req, res) => {
     for (let opt of options) {
       const optId = opt.id || `opt-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
       await db.asyncRun(
-        'INSERT INTO options (id, question_id, option_text, is_correct) VALUES (?, ?, ?, ?)',
-        [optId, qId, opt.text || opt.option_text, opt.isCorrect ? 1 : 0]
+        'INSERT INTO options (id, question_id, option_text, is_correct) VALUES ($1, $2, $3, $4)',
+        [optId, qId, opt.text || opt.option_text, !!opt.isCorrect]
       );
     }
 
@@ -63,8 +63,8 @@ exports.saveQuestion = async (req, res) => {
 exports.deleteQuestion = async (req, res) => {
   try {
     const { id } = req.params;
-    await db.asyncRun('DELETE FROM options WHERE question_id = ?', [id]);
-    await db.asyncRun('DELETE FROM questions WHERE id = ?', [id]);
+    await db.asyncRun('DELETE FROM options WHERE question_id = $1', [id]);
+    await db.asyncRun('DELETE FROM questions WHERE id = $1', [id]);
     res.json({ message: 'Question deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: 'Error deleting question', error: err.message });

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const db = require('./config/db');
 const apiRoutes = require('./routes/apiRoutes');
@@ -12,8 +13,23 @@ app.use(cors());
 app.use(express.json());
 
 // Health Check
-app.get('/health', (req, res) => {
+app.get(['/health', '/api/health'], (req, res) => {
   res.json({ status: 'OK', service: 'Examify Hub REST API', timestamp: new Date().toISOString() });
+});
+
+app.get(['/health/db', '/api/health/db'], async (req, res, next) => {
+  try {
+    const db = require('./config/db');
+    const result = await db.asyncGet('SELECT 1 AS ok');
+    res.json({
+      status: 'OK',
+      database: 'connected',
+      result: result?.ok === 1 ? 1 : result?.ok ?? null,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err) {
+    next(err);
+  }
 });
 
 // API Routes

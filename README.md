@@ -5,6 +5,15 @@
   <img src="https://img.shields.io/badge/AI%20Telemetry-Gemini%20Flash-F97316?style=for-the-badge&logo=google-gemini&logoColor=white" alt="AI Badge" />
   <img src="https://img.shields.io/badge/Vite-v8.2-22D3EE?style=for-the-badge&logo=vite&logoColor=white" alt="Vite Badge" />
   <img src="https://img.shields.io/badge/Backend-Express%20%26%20PostgreSQL-emerald?style=for-the-badge&logo=postgresql&logoColor=white" alt="Backend Badge" />
+  <a href="https://examify-hub-seven.vercel.app/" target="_blank">
+    <img src="https://img.shields.io/badge/Live%20Demo-Vercel%20Production-00F2FF?style=for-the-badge&logo=vercel&logoColor=black" alt="Live Demo Badge" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://examify-hub-seven.vercel.app/" target="_blank">
+    <img src="https://capsule-render.vercel.app/api?type=rect&color=00F2FF&height=50&text=🚀%20LAUNCH%20LIVE%20DEMO%20NOW&fontSize=20&fontColor=000000" alt="Launch Live Demo" />
+  </a>
 </p>
 
 ---
@@ -14,7 +23,9 @@
 </p>
 
 <p align="center">
-  <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" width="100%" alt="Examify-Hub | Online Assessment Platform" />
+  <a href="https://examify-hub-seven.vercel.app/" target="_blank">
+    <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80" width="100%" alt="Examify-Hub | Online Assessment Platform" />
+  </a>
 </p>
 
 ---

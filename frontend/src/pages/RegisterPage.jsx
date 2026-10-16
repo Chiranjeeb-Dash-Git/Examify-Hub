@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, AlertCircle, Sparkles, UserCheck } from 'lucide-react';
+import { ArrowRight, AlertCircle, Sparkles, UserCheck, Eye, EyeOff } from 'lucide-react';
 import { Hero3DCanvas } from '../components/landing/Hero3DCanvas';
 import { Reveal } from '../components/landing/Reveal';
 
@@ -10,6 +10,8 @@ export const RegisterPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -148,28 +150,48 @@ export const RegisterPage = () => {
                     <label className="block font-mono text-[11px] text-white/60 uppercase tracking-wider">
                       PASSCODE
                     </label>
-                    <input
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full px-4 py-3 rounded-xl bg-[#050505] border border-white/10 text-white placeholder-white/30 font-body text-sm focus:outline-none focus:border-white/40 transition-all"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full px-4 py-3 pr-12 rounded-xl bg-[#050505] border border-white/10 text-white placeholder-white/30 font-body text-sm focus:outline-none focus:border-white/40 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors p-1"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="space-y-1.5">
                     <label className="block font-mono text-[11px] text-white/60 uppercase tracking-wider">
                       CONFIRM PASSCODE
                     </label>
-                    <input
-                      type="password"
-                      required
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full px-4 py-3 rounded-xl bg-[#050505] border border-white/10 text-white placeholder-white/30 font-body text-sm focus:outline-none focus:border-white/40 transition-all"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full px-4 py-3 pr-12 rounded-xl bg-[#050505] border border-white/10 text-white placeholder-white/30 font-body text-sm focus:outline-none focus:border-white/40 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors p-1"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   <button

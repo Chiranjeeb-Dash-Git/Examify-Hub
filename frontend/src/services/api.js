@@ -68,38 +68,42 @@ export const api = {
       return { user: data.user, token: data.token };
     }
 
-    if ([400, 401, 403].includes(response.status)) {
+    if ([400, 401, 403, 500, 503].includes(response.status)) {
       const errData = await response.json().catch(() => ({}));
-      throw new Error(errData.message || 'Invalid email or password');
+      throw new Error(errData.message || (errData.error ? `${errData.message}: ${errData.error}` : 'Invalid email or password'));
     }
 
     throw new Error(`Backend login failed with status ${response.status}`);
   },
 
   register: async ({ name, email, password }) => {
+    let response;
     try {
-      const response = await apiRequest('/api/auth/register', {
+      response = await apiRequest('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password })
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('examify_hub_currentUser', JSON.stringify(data.user));
-        localStorage.setItem('examify_hub_token', data.token);
-        return { user: data.user, token: data.token };
-      }
-
-      if ([400, 401, 403].includes(response.status)) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || 'Unable to register account');
-      }
-
-      throw new Error(`Backend registration failed with status ${response.status}`);
     } catch (networkErr) {
-      throw new Error('Registration service is unavailable. Please try again shortly.');
+      throw new Error('Registration network request failed. Please check your internet connection.');
     }
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('examify_hub_currentUser', JSON.stringify(data.user));
+      localStorage.setItem('examify_hub_token', data.token);
+      return { user: data.user, token: data.token };
+    }
+
+    const errData = await response.json().catch(() => ({}));
+    if (errData.message) {
+      if (errData.error) {
+        throw new Error(`${errData.message} (${errData.error})`);
+      }
+      throw new Error(errData.message);
+    }
+
+    throw new Error(`Backend registration failed with status ${response.status}`);
   },
 
   getCurrentUser: async () => {

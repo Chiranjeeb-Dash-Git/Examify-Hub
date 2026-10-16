@@ -1,15 +1,17 @@
 import React, { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Shield, User, ArrowRight, AlertCircle, Lock, Sparkles, Terminal } from 'lucide-react';
+import { Shield, User, ArrowRight, AlertCircle, Lock, Sparkles, Terminal, Eye, EyeOff } from 'lucide-react';
 import { Hero3DCanvas } from '../components/landing/Hero3DCanvas';
 import { Reveal } from '../components/landing/Reveal';
 
 const ADMIN_PORTAL_EMAIL = 'admin@examify.io';
+const ADMIN_PORTAL_PASSWORD = 'admin123';
 
 export const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const passwordInputRef = useRef(null);
@@ -38,9 +40,14 @@ export const LoginPage = () => {
 
   const selectPortal = (role) => {
     setError('');
-    setEmail(role === 'ADMIN' ? ADMIN_PORTAL_EMAIL : '');
-    setPassword('');
-    passwordInputRef.current?.focus();
+    if (role === 'ADMIN') {
+      setEmail(ADMIN_PORTAL_EMAIL);
+      setPassword(ADMIN_PORTAL_PASSWORD);
+    } else {
+      setEmail('');
+      setPassword('');
+      passwordInputRef.current?.focus();
+    }
   };
 
   return (
@@ -138,7 +145,7 @@ export const LoginPage = () => {
                     </button>
                   </div>
                   <p className="font-mono text-[10px] text-white/30 leading-relaxed">
-                    Candidates can create their own accounts. Admin Login selects the fixed Supabase-backed administrator account; enter its credentials to open the control portal.
+                    Click <strong>ADMIN LOGIN</strong> to auto-fill administrative credentials (<span className="text-white/60">admin@examify.io</span> / <span className="text-white/60">admin123</span>). Click <strong>CANDIDATE LOGIN</strong> to enter candidate credentials.
                   </p>
                 </div>
 
@@ -178,15 +185,25 @@ export const LoginPage = () => {
                         FORGOT PASSCODE?
                       </a>
                     </div>
-                    <input
-                      ref={passwordInputRef}
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••••••"
-                      className="w-full px-4 py-3.5 rounded-xl bg-[#050505] border border-white/10 text-white placeholder-white/30 font-body text-sm focus:outline-none focus:border-white/40 transition-all"
-                    />
+                    <div className="relative">
+                      <input
+                        ref={passwordInputRef}
+                        type={showPassword ? 'text' : 'password'}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••••••"
+                        className="w-full px-4 py-3.5 pr-12 rounded-xl bg-[#050505] border border-white/10 text-white placeholder-white/30 font-body text-sm focus:outline-none focus:border-white/40 transition-all"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors p-1"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </div>
 
                   <button

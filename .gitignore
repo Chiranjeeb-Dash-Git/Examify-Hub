@@ -16,3 +16,7 @@ backend/aetheris.db
 Thumbs.db
 .vscode/
 .idea/
+
+# Local Vercel link/token files
+.vercel/
+.env.local
